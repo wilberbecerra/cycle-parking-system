@@ -671,3 +671,35 @@ function imprimirPDFPerdida(d) {
     // Descargar
     doc.save(`Acta_Perdida_${d.codigo}.pdf`);
 }
+
+function filtrarHistorial() {
+    // 1. Capturar lo que escribes (convertido a minúsculas)
+    const input = document.getElementById("filtro-historial");
+    if (!input) return; // Protección por si no existe el input
+    
+    const texto = input.value.toLowerCase().trim();
+
+    // 2. Filtrar la lista global 'ticketsHistorial'
+    const filtrados = ticketsHistorial.filter(t => {
+        // Aseguramos que los campos existan o sean texto vacío ""
+        const cliente = (t.Cliente || "").toLowerCase();
+        const codigo = (t.CODIGO_CORRELATIVO || "").toLowerCase();
+        const vehiculo = (t.TIPO_VEHICULO || "").toLowerCase();
+        
+        // Agregamos Marca y Color por si quieres buscar "Monark" aunque no salga en la tabla
+        const marca = (t.MARCA_BICI || t.marca || "").toLowerCase();
+        const color = (t.COLOR_BICI || t.color || "").toLowerCase();
+        const estado = (t.ESTADO || "").toLowerCase();
+
+        // 3. Condición: Si el texto está en CUALQUIERA de estos campos, pasa el filtro
+        return cliente.includes(texto) || 
+               codigo.includes(texto) || 
+               vehiculo.includes(texto) || 
+               marca.includes(texto) || 
+               color.includes(texto) ||
+               estado.includes(texto);
+    });
+
+    // 4. Volver a pintar la tabla con los resultados filtrados
+    renderHistorial(filtrados);
+}
