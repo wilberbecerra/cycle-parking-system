@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Parking Login - Panel Operativo</title>
+    <title>Panel Operativo</title>
     <link rel="stylesheet" href="../css/styles.css" />
     <style>
       /* ESTILOS DE ESTADO */
@@ -86,7 +86,7 @@
     <header>
       <div class="header-logo-section">
         <img src="../assets/logo-login.png" alt="Logo" class="header-logo" />
-        <div class="header-title">🚲 <strong>Parking Login</strong></div>
+        <div class="header-title">🚲 <strong>Parking Control</strong></div>
       </div>
       <div class="header-tools">
         <button
@@ -248,258 +248,160 @@
     </div>
 
     <div id="modal-perdida" class="modal">
-      <div
-        class="modal-content"
-        style="width: 800px; max-height: 90vh; overflow-y: auto"
-      >
+      <div class="modal-content" style="width: 800px; max-height: 90vh">
         <div
           style="
             text-align: center;
-            border-bottom: 2px solid #ef4444;
+            border-bottom: 2px solid var(--danger);
             padding-bottom: 10px;
             margin-bottom: 15px;
           "
         >
-          <h2 style="color: #ef4444; margin: 0">🚨 ACTA DE PÉRDIDA</h2>
-          <span style="color: #64748b; font-size: 0.9rem"
-            >EXPEDIENTE: <b id="loss-codigo">...</b></span
+          <h2 style="color: var(--danger); margin: 0">🚨 ACTA DE PÉRDIDA</h2>
+          <span style="color: var(--text-muted); font-size: 0.9rem"
+            >CÓDIGO: <b id="loss-codigo">...</b></span
           >
         </div>
 
         <div
           style="
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 10px;
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
             font-size: 0.85rem;
           "
         >
           <div>
-            <label style="color: #64748b; font-size: 0.7rem; font-weight: bold"
-              >CLIENTE</label
-            >
+            <label>CLIENTE</label>
             <div id="loss-cliente" style="font-weight: bold">...</div>
           </div>
           <div>
-            <label style="color: #64748b; font-size: 0.7rem; font-weight: bold"
-              >DOCUMENTO</label
-            >
+            <label>DNI/CE</label>
             <div id="loss-dni">...</div>
           </div>
           <div>
-            <label style="color: #64748b; font-size: 0.7rem; font-weight: bold"
-              >HORA INGRESO</label
-            >
+            <label>INGRESO</label>
             <div id="loss-ingreso">...</div>
           </div>
           <div>
-            <label style="color: #64748b; font-size: 0.7rem; font-weight: bold"
-              >VEHÍCULO</label
-            >
+            <label>VEHÍCULO</label>
             <div id="loss-tipo">...</div>
           </div>
           <div>
-            <label style="color: #64748b; font-size: 0.7rem; font-weight: bold"
-              >MARCA</label
-            >
+            <label>MARCA</label>
             <div id="loss-marca">...</div>
           </div>
           <div>
-            <label style="color: #64748b; font-size: 0.7rem; font-weight: bold"
-              >COLOR</label
-            >
+            <label>COLOR</label>
             <div id="loss-color">...</div>
           </div>
         </div>
-
-        <h4 style="margin: 15px 0 5px 0">📍 Datos de Contacto (Solicitante)</h4>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
-          <input
-            type="text"
-            id="loss-direccion"
-            placeholder="Dirección Domiciliaria"
-            style="padding: 8px; border: 1px solid #ccc; border-radius: 4px"
-          />
-          <input
-            type="text"
-            id="loss-telefono"
-            placeholder="Teléfono de Contacto"
-            style="padding: 8px; border: 1px solid #ccc; border-radius: 4px"
-          />
-        </div>
-
-        <h4 style="margin: 15px 0 5px 0">📸 Evidencia Documentaria (DNI/CE)</h4>
-
-        <div
+        <h4
           style="
-            background: #000;
-            border-radius: 8px;
-            height: 280px;
-            position: relative;
-            margin-bottom: 10px;
-            overflow: hidden;
+            margin: 15px 0 5px 0;
+            color: #334155;
+            border-bottom: 1px solid #eee;
           "
         >
-          <video
-            id="video-feed"
-            autoplay
-            style="width: 100%; height: 100%; object-fit: contain"
-          ></video>
-          <div
-            style="
-              position: absolute;
-              bottom: 10px;
-              left: 0;
-              right: 0;
-              display: flex;
-              justify-content: center;
-              gap: 20px;
-            "
-          >
-            <button
-              onclick="capturarFoto('anverso')"
-              style="
-                background: rgba(255, 255, 255, 0.9);
-                border: none;
-                padding: 8px 15px;
-                border-radius: 20px;
-                cursor: pointer;
-                font-weight: bold;
-              "
-            >
-              📷 FOTO ANVERSO
-            </button>
-            <button
-              onclick="capturarFoto('reverso')"
-              style="
-                background: rgba(255, 255, 255, 0.9);
-                border: none;
-                padding: 8px 15px;
-                border-radius: 20px;
-                cursor: pointer;
-                font-weight: bold;
-              "
-            >
-              📷 FOTO REVERSO
-            </button>
-          </div>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
-          <div style="text-align: center">
-            <div
-              style="
-                height: 150px;
-                background: #f1f5f9;
-                border: 2px dashed #cbd5e1;
-                border-radius: 6px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: hidden;
-              "
-            >
-              <img
-                id="img-anverso"
-                style="
-                  width: 100%;
-                  height: 100%;
-                  object-fit: cover;
-                  display: none;
-                "
-              />
-              <span id="txt-anverso" style="color: #94a3b8; font-size: 0.8rem"
-                >DNI FRENTE</span
-              >
-            </div>
-          </div>
-          <div style="text-align: center">
-            <div
-              style="
-                height: 150px;
-                background: #f1f5f9;
-                border: 2px dashed #cbd5e1;
-                border-radius: 6px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                overflow: hidden;
-              "
-            >
-              <img
-                id="img-reverso"
-                style="
-                  width: 100%;
-                  height: 100%;
-                  object-fit: cover;
-                  display: none;
-                "
-              />
-              <span id="txt-reverso" style="color: #94a3b8; font-size: 0.8rem"
-                >DNI DORSO</span
-              >
-            </div>
-          </div>
-        </div>
-
+          📞 Datos de Contacto y Entrega
+        </h4>
         <div
           style="
-            margin-top: 20px;
-            background: #fffbeb;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #fcd34d;
-            font-size: 0.7rem;
-            color: #78350f;
-            text-align: justify;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
           "
         >
-          <strong>DECLARACIÓN DE CONFORMIDAD Y PROTECCIÓN DE DATOS:</strong
-          ><br />
-          De conformidad con la Ley N° 29733, se deja constancia del registro de
-          imagen y datos personales del solicitante únicamente con fines de
-          seguridad y auditoría. El solicitante declara haber recibido el
-          vehículo en las condiciones descritas y libera al establecimiento de
-          cualquier reclamo posterior.
+          <div>
+            <label style="font-size: 0.8rem; font-weight: bold">TELÉFONO</label>
+            <input
+              type="text"
+              id="loss-telefono"
+              class="form-control"
+              placeholder="Ej: 999..."
+              autocomplete="off"
+              style="width: 100%"
+            />
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; font-weight: bold"
+              >DIRECCIÓN</label
+            >
+            <input
+              type="text"
+              id="loss-direccion"
+              class="form-control"
+              placeholder="Av. Siempre Viva 123"
+              autocomplete="off"
+              style="width: 100%"
+            />
+          </div>
+          <div>
+            <label style="font-size: 0.8rem; font-weight: bold">CORREO</label>
+            <input
+              type="text"
+              id="loss-correo"
+              class="form-control"
+              placeholder="correo@ejemplo.com"
+              autocomplete="off"
+              style="width: 100%"
+            />
+          </div>
+        </div>
+
+        <h4 style="margin: 15px 0 5px 0">📸 Evidencia Fotográfica</h4>
+        <div class="camera-container">
+          <div class="video-box">
+            <video id="video-feed" autoplay></video>
+            <div
+              style="
+                position: absolute;
+                bottom: 5px;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                gap: 5px;
+              "
+            >
+              <button onclick="capturarFoto('anverso')" class="btn-cap">
+                📸 ANVERSO DNI/CE
+              </button>
+              <button onclick="capturarFoto('reverso')" class="btn-cap">
+                📸 REVERSO DNI/CE
+              </button>
+            </div>
+          </div>
+          <div class="photo-preview">
+            <img id="img-anverso" style="display: none" />
+            <img id="img-reverso" style="display: none" />
+            <span
+              id="placeholder-text"
+              style="color: #94a3b8; font-size: 0.8rem"
+              >Capture las evidencias</span
+            >
+          </div>
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 20px">
           <button
             onclick="generarActaSalida()"
-            style="
-              background: var(--danger);
-              color: white;
-              width: 70%;
-              border: none;
-              padding: 15px;
-              border-radius: 8px;
-              font-weight: bold;
-              font-size: 1rem;
-              cursor: pointer;
-            "
+            class="btn-primary"
+            style="background: var(--danger); flex: 2"
           >
-            📝 GENERAR ACTA Y DAR SALIDA
+            📝 GENERAR ACTA Y SALIDA
           </button>
           <button
             onclick="cerrarModal('modal-perdida')"
-            style="
-              background: grey;
-              color: white;
-              width: 30%;
-              border: none;
-              padding: 15px;
-              border-radius: 8px;
-              cursor: pointer;
-            "
+            class="btn-primary"
+            style="background: grey; flex: 1"
           >
-            Cancelar
+            CANCELAR
           </button>
         </div>
-
         <input type="hidden" id="loss-id-ticket" />
       </div>
     </div>

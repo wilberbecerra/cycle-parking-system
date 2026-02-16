@@ -1,3 +1,6 @@
+/* --- CyclePark: Access Control & Ticket Inventory --- */
+/* Presentation Layer Logic | Capa de Presentación */
+
 /* --- VARIABLES GLOBALES --- */
 let ticketsGlobal = [];
 let ticketsHistorial = [];
@@ -5,24 +8,27 @@ let streamCamara = null;
 
 /* --- INICIALIZACIÓN --- */
 document.addEventListener("DOMContentLoaded", async () => {
+    // 1. Validar Sesión y Saludo
     const nombre = localStorage.getItem("usuarioNombre");
-    if (!nombre) { window.location.href = "login.html"; return; }
+    if (!nombre || nombre === "undefined") { 
+        window.location.href = "login.html"; 
+        return; 
+    }
     document.getElementById("nombre-usuario").innerText = nombre;
 
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('forceCorteX') === 'true') await ejecutarCorte('X', true);
-
+    // 2. Cargar permisos de Administrador
     const rol = localStorage.getItem("usuarioRol");
     if (rol === "Administrador") {
         const btn = document.getElementById("btn-admin-usuarios");
         if (btn) btn.style.display = "inline-block";
     }
 
+    // 3. Cargar datos iniciales
     await cargarActivos();
     initIdentidad();
 });
 
-/* --- UTILIDAD: HORA (AM/PM) --- */
+/* --- UTILIDADES --- */
 function formatearHora(isoString) {
     if (!isoString) return "--:--";
     try {
@@ -31,7 +37,12 @@ function formatearHora(isoString) {
     } catch (e) { return isoString; }
 }
 
-/* --- 1. RENDERIZADO DE TABLA --- */
+function limpiarId(id) {
+    if (!id) return 1;
+    return id.toString().replace(':1', '').trim();
+}
+
+/* --- 1. RENDERIZADO DE TABLA (Activos) --- */
 function renderTabla(lista) {
     const tbody = document.getElementById("tickets-body");
     if (!tbody) return;
@@ -54,9 +65,9 @@ function renderTabla(lista) {
             <td>${marca} / ${color}</td>
             <td><span class="badge badge-activo">ACTIVO</span></td>
             <td style="white-space: nowrap;">
-                <button onclick="abrirEditar(${t.ID_TICKET})" class="btn-action btn-edit" title="Editar">✏️ Editar</button>
-                <button onclick="marcarSalida(${t.ID_TICKET})" class="btn-action btn-out" title="Salida">📤 Salida</button>
-                <button onclick="abrirPerdida(${t.ID_TICKET})" class="btn-action btn-loss" title="Pérdida">🚨 Pérdida</button>
+                <button onclick="abrirEditar(${t.ID_TICKET})" class="btn-action btn-edit">✏️ Editar</button>
+                <button onclick="marcarSalida(${t.ID_TICKET})" class="btn-action btn-out">📤 Salida</button>
+                <button onclick="abrirPerdida(${t.ID_TICKET})" class="btn-action btn-loss">🚨 Pérdida</button>
             </td>
         </tr>`;
     }).join("");
@@ -65,50 +76,74 @@ function renderTabla(lista) {
 async function cargarActivos() {
     try {
         const res = await fetch("http://127.0.0.1:3000/api/tickets/activos");
+        if (!res.ok) throw new Error("Error en la petición activos");
         ticketsGlobal = await res.json();
         renderTabla(ticketsGlobal);
-    } catch (e) {}
+    } catch (e) { console.error("Error al cargar activos:", e); }
 }
 
-/* --- 2. ACCIONES (EDITAR, SALIDA, PÉRDIDA) --- */
+/* --- 2. ACCIONES: CREAR, EDITAR, SALIDA --- */
 
-// A) EDITAR
+// A) CREAR TICKET (POST) - BLINDADO CONTRA ERRORES
+async function guardarTicket() {
+    const rawId = localStorage.getItem("usuarioId");
+    const idUsuario = limpiarId(rawId); 
+    
+    // Limpiamos Inputs del formulario
+    const dni = limpiarId(document.getElementById("documento-input").value);
+    const nombre = document.getElementById("nombre-cliente").value.trim();
+
+    if (!dni || !nombre) return alert("⚠️ DNI y Nombre son obligatorios.");
+
+    const body = {
+        dni_cliente: dni,
+        nombre_manual: nombre,
+        tipo_vehiculo: document.getElementById("tipo-vehiculo").value,
+        marca: document.getElementById("marca").value.trim(),
+        color: document.getElementById("color").value.trim(),
+        observaciones: document.getElementById("observaciones").value.trim(),
+        id_usuario_ingreso: parseInt(idUsuario) || 1
+    };
+    
+    try {
+        const res = await fetch("http://127.0.0.1:3000/api/tickets", { 
+            method: "POST", 
+            headers: { "Content-Type": "application/json" }, 
+            body: JSON.stringify(body) 
+        });
+        
+        if (res.ok) { 
+            alert("✅ Ticket Registrado"); 
+            location.reload(); 
+        } else {
+            const err = await res.text();
+            alert("❌ Error del servidor: " + err);
+        }
+    } catch (e) { alert("❌ Error de conexión al crear ticket."); }
+}
+
+// B) EDITAR (PUT)
 function abrirEditar(id) {
     const t = ticketsGlobal.find(x => x.ID_TICKET == id);
     if (!t) return;
     document.getElementById("edit-id-ticket").value = id;
     document.getElementById("edit-nombre").value = t.Cliente;
-    document.getElementById("edit-marca").value = t.MARCA_BICI || t.marca_bici || "";
-    document.getElementById("edit-color").value = t.COLOR_BICI || t.color_bici || "";
+    document.getElementById("edit-marca").value = t.MARCA_BICI || "";
+    document.getElementById("edit-color").value = t.COLOR_BICI || "";
     document.getElementById("edit-obs").value = t.OBSERVACIONES || "";
     document.getElementById("modal-editar").style.display = "flex";
 }
 
-/* --- FUNCIÓN GUARDAR EDICIÓN (REAL CONEXIÓN BD) --- */
 async function guardarEdicion() {
-    // 1. Obtener el ID del ticket oculto
     const id = document.getElementById("edit-id-ticket").value;
-    if (!id) return alert("❌ Error: No se identificó el ticket a editar.");
-
-    // 2. Capturar los nuevos valores del formulario
-    const nombre = document.getElementById("edit-nombre").value;
-    const marca = document.getElementById("edit-marca").value;
-    const color = document.getElementById("edit-color").value;
-    const obs = document.getElementById("edit-obs").value;
-
-    // 3. Preparar el paquete de datos (Usamos doble llave para asegurar compatibilidad)
     const body = {
-        nombre_manual: nombre,  // Para actualizar cliente si el backend lo permite
-        marca_bici: marca,      // Nombre SQL
-        marca: marca,           // Nombre corto
-        color_bici: color,      // Nombre SQL
-        color: color,           // Nombre corto
-        observaciones: obs
+        nombre_manual: document.getElementById("edit-nombre").value,
+        marca_bici: document.getElementById("edit-marca").value,
+        color_bici: document.getElementById("edit-color").value,
+        observaciones: document.getElementById("edit-obs").value
     };
 
     try {
-        // 4. Enviar la petición PUT al servidor
-        // Asumimos que tu ruta backend es: PUT /api/tickets/:id
         const res = await fetch(`http://127.0.0.1:3000/api/tickets/${id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -116,40 +151,36 @@ async function guardarEdicion() {
         });
 
         if (res.ok) {
-            alert("✅ Cambios guardados correctamente en Base de Datos.");
-            
-            // 5. Cerrar modal y refrescar la tabla
-            document.getElementById("modal-editar").style.display = "none";
+            alert("✅ Cambios guardados.");
+            cerrarModal('modal-editar');
             await cargarActivos(); 
-        } else {
-            const errorTxt = await res.text();
-            alert("❌ Error al actualizar: " + errorTxt);
         }
-    } catch (e) {
-        console.error(e);
-        alert("❌ Error de conexión con el servidor.");
-    }
+    } catch (e) { alert("❌ Error al editar."); }
 }
 
-// B) SALIDA
+// C) SALIDA NORMAL
 async function marcarSalida(id) {
     if (!confirm("¿Confirmar salida del vehículo?")) return;
-    await fetch(`http://127.0.0.1:3000/api/tickets/salida/${id}`, { method: "PUT" });
-    await cargarActivos();
+    try {
+        const res = await fetch(`http://127.0.0.1:3000/api/tickets/salida/${id}`, { method: "PUT" });
+        if (res.ok) await cargarActivos();
+    } catch (e) { alert("❌ Error al procesar salida."); }
 }
 
-// C) PÉRDIDA (LÓGICA MEJORADA PDF CON FOTOS)
+/* --- 3. FUNCIONALIDAD DE PÉRDIDA --- */
 function abrirPerdida(id) {
     const t = ticketsGlobal.find(x => x.ID_TICKET == id);
     if (!t) return;
+
     document.getElementById("loss-id-ticket").value = id;
+    document.getElementById("loss-codigo").innerText = t.CODIGO_CORRELATIVO;
     document.getElementById("loss-cliente").innerText = t.Cliente;
-    document.getElementById("loss-vehiculo").innerText = `${t.TIPO_VEHICULO} - ${t.MARCA_BICI || ""}`;
-    
-    // Limpiar fotos previas
-    document.getElementById("img-dni").style.display = "none";
-    document.getElementById("img-face").style.display = "none";
-    
+    document.getElementById("loss-dni").innerText = t.DNI;
+    document.getElementById("loss-ingreso").innerText = formatearHora(t.HORA_INGRESO);
+    document.getElementById("loss-tipo").innerText = t.TIPO_VEHICULO;
+    document.getElementById("loss-marca").innerText = t.MARCA_BICI || "-";
+    document.getElementById("loss-color").innerText = t.COLOR_BICI || "-";
+
     document.getElementById("modal-perdida").style.display = "flex";
     iniciarCamara();
 }
@@ -157,186 +188,197 @@ function abrirPerdida(id) {
 async function iniciarCamara() {
     try {
         streamCamara = await navigator.mediaDevices.getUserMedia({ video: true });
-        document.getElementById("video-dni").srcObject = streamCamara;
-        document.getElementById("video-face").srcObject = streamCamara;
-    } catch (e) { alert("Active la cámara para continuar."); }
+        const video = document.getElementById("video-feed");
+        if (video) video.srcObject = streamCamara;
+    } catch (e) { alert("⚠️ Permitir cámara."); }
 }
 
-function tomarFoto(tipo) {
-    const video = document.getElementById(tipo === 'dni' ? 'video-dni' : 'video-face');
-    const img = document.getElementById(tipo === 'dni' ? 'img-dni' : 'img-face');
+function capturarFoto(tipo) {
+    const video = document.getElementById("video-feed");
+    const imgId = tipo === 'anverso' ? "img-anverso" : "img-reverso";
+    const img = document.getElementById(imgId);
+    
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     canvas.getContext('2d').drawImage(video, 0, 0);
+    
     img.src = canvas.toDataURL('image/jpeg');
     img.style.display = "block";
+    if (document.getElementById("placeholder-text")) {
+        document.getElementById("placeholder-text").style.display = "none";
+    }
 }
 
-function confirmarPerdida() {
-    // Verificar que haya fotos
-    const imgDniSrc = document.getElementById("img-dni").src;
-    const imgFaceSrc = document.getElementById("img-face").src;
-    if(document.getElementById("img-dni").style.display === "none" || document.getElementById("img-face").style.display === "none") {
-        return alert("⚠️ Debes tomar ambas fotos (DNI y Rostro) para generar el acta.");
+//Generar acta de salida
+async function generarActaSalida() {
+const id = document.getElementById("loss-id-ticket").value;
+    const foto1 = document.getElementById("img-anverso").src;
+    const foto2 = document.getElementById("img-reverso").src;
+    
+    // Capturar nuevos campos
+    const telefono = document.getElementById("loss-telefono").value.trim();
+    const direccion = document.getElementById("loss-direccion").value.trim();
+    const correo = document.getElementById("loss-correo").value.trim();
+
+    if (!foto1.startsWith('data:') || !foto2.startsWith('data:')) {
+        return alert("⚠️ Es obligatorio capturar ambas fotos como evidencia.");
+    }
+    if (!telefono || !direccion) {
+        return alert("⚠️ Teléfono y Dirección son obligatorios para el acta legal.");
     }
 
-    const id = document.getElementById("loss-id-ticket").value;
-    const t = ticketsGlobal.find(x => x.ID_TICKET == id);
-    const fecha = new Date().toLocaleDateString('es-PE');
-
-    // Cerrar Modal y Cámara
-    if(streamCamara) streamCamara.getTracks().forEach(track => track.stop());
-    document.getElementById("modal-perdida").style.display = "none";
-
-    // --- GENERAR PDF PRO ---
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    // Cabecera
-    doc.setFontSize(16); doc.setFont("helvetica", "bold");
-    doc.text("ACTA DE ENTREGA POR PÉRDIDA DE TICKET", 105, 20, null, null, "center");
-    
-    doc.setFontSize(10); doc.setFont("helvetica", "normal");
-    doc.text(`EXPEDIENTE: ${t.CODIGO_CORRELATIVO} | FECHA: ${fecha}`, 105, 28, null, null, "center");
-
-    // Datos
-    let y = 40;
-    doc.setFontSize(11); doc.setFont("helvetica", "bold");
-    doc.text("1. DATOS DEL REGISTRO:", 15, y);
-    doc.setFontSize(10); doc.setFont("helvetica", "normal");
-    y += 7; doc.text(`Cliente: ${t.Cliente}`, 20, y);
-    y += 6; doc.text(`DNI: ${t.DNI}`, 20, y);
-    y += 6; doc.text(`Vehículo: ${t.TIPO_VEHICULO} - ${t.MARCA_BICI||""} ${t.COLOR_BICI||""}`, 20, y);
-    y += 6; doc.text(`Ingreso: ${formatearHora(t.HORA_INGRESO)}`, 20, y);
-
-    // Fotos
-    y += 15;
-    doc.setFontSize(11); doc.setFont("helvetica", "bold");
-    doc.text("2. EVIDENCIA FOTOGRÁFICA:", 15, y);
-    y += 5;
     try {
-        // Pegar fotos capturadas
-        doc.addImage(imgDniSrc, "JPEG", 20, y, 80, 50); // Foto DNI
-        doc.addImage(imgFaceSrc, "JPEG", 110, y, 80, 50); // Foto Rostro
-        doc.setFontSize(8); doc.setFont("helvetica", "italic");
-        doc.text("Documento Identidad", 60, y+55, null, null, "center");
-        doc.text("Rostro Solicitante", 150, y+55, null, null, "center");
-    } catch(e) { console.error("Error imágenes PDF"); }
+        const res = await fetch(`http://127.0.0.1:3000/api/tickets/perdida/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+                foto_dni: foto1, 
+                foto_rostro: foto2,
+                telefono: telefono,
+                direccion: direccion,
+                correo: correo
+            })
+        });
 
-    // Texto Legal
-    y += 70;
-    doc.setFillColor(240, 240, 240); doc.rect(15, y, 180, 25, 'F');
-    doc.setFontSize(9); doc.setFont("helvetica", "bold");
-    doc.text("DECLARACIÓN DE CONFORMIDAD Y PROTECCIÓN DE DATOS:", 18, y+6);
-    doc.setFontSize(8); doc.setFont("helvetica", "normal");
-    const legalText = "De conformidad con la Ley N° 29733, se deja constancia del registro de imagen y datos personales del solicitante únicamente con fines de seguridad y auditoría. El solicitante declara haber recibido el vehículo en las condiciones descritas y libera al establecimiento de cualquier reclamo posterior.";
-    const splitText = doc.splitTextToSize(legalText, 170);
-    doc.text(splitText, 18, y+11);
+        if (res.ok) {
+            alert("✅ Acta registrada correctamente. Generando PDF...");
+            
+            // 1. Preparamos los datos para el PDF
+            const datosPDF = {
+                codigo: document.getElementById("loss-codigo").innerText,
+                cliente: document.getElementById("loss-cliente").innerText,
+                dni: document.getElementById("loss-dni").innerText,
+                vehiculo: document.getElementById("loss-tipo").innerText,
+                marca: document.getElementById("loss-marca").innerText,
+                color: document.getElementById("loss-color").innerText,
+                ingreso: document.getElementById("loss-ingreso").innerText,
+                telefono, direccion, correo, foto1, foto2
+            };
 
-    doc.save(`Acta_Perdida_${t.CODIGO_CORRELATIVO}.pdf`);
-    
-    // API
-    fetch(`http://127.0.0.1:3000/api/tickets/salida/${id}?estado=Perdido`, { method: "PUT" });
-    cargarActivos();
+            // 2. Generamos el PDF
+            imprimirPDFPerdida(datosPDF);
+
+            // 3. Recargar página después de un momento
+            setTimeout(() => location.reload(), 2000);
+        }
+    } catch (e) { alert("❌ Error al procesar pérdida."); }
 }
 
-/* --- 3. GUARDAR TICKET (AMBOS NOMBRES) --- */
-async function guardarTicket() {
-    const usuarioId = localStorage.getItem("usuarioId") || 1; 
-    const marca = document.getElementById("marca").value.trim();
-    const color = document.getElementById("color").value.trim();
+/* --- NUEVA FUNCIÓN: DISEÑO EXACTO DEL PDF (Pegar al final de dashboard.js) --- */
 
-    const body = {
-        dni_cliente: document.getElementById("documento-input").value,
-        nombre_manual: document.getElementById("nombre-cliente").value,
-        tipo_vehiculo: document.getElementById("tipo-vehiculo").value,
-        
-        // Enviamos doble para asegurar
-        marca: marca, marca_bici: marca,
-        color: color, color_bici: color,
-        
-        observaciones: document.getElementById("observaciones").value,
-        tiene_cadena: 0, id_usuario_ingreso: parseInt(usuarioId), id_sede: 1
-    };
-    
-    const res = await fetch("http://127.0.0.1:3000/api/tickets", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    if (res.ok) { alert("✅ Ticket Registrado"); location.reload(); }
-}
 
-/* --- 4. EXPORTACIÓN --- */
-function cerrarSesionBoton() {
-    if (confirm("¿Desea cerrar la sesión? Se generará un Corte X automáticamente.")) {
-        ejecutarCorte('X', true);
-    }
-}
-
+/* --- 4. EXPORTACIÓN Y CORTES --- */
 async function ejecutarCorte(tipo, salirAlFinal = false) {
-    if (salirAlFinal) alert("Exportando datos y cerrando sesión...");
-    
     try {
         const resMov = await fetch('http://127.0.0.1:3000/api/clientes/hoy');
         const movimientos = await resMov.json();
-        const fecha = new Date().toLocaleDateString('es-PE').replace(/\//g, '-');
-        const nombreArchivo = `Corte_${tipo}_${fecha}`;
-
-        // PDF
+        
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.setFillColor(30, 41, 59); doc.rect(0, 0, 210, 28, 'F');
-        doc.setTextColor(255); doc.setFontSize(16); doc.text(`REPORTE ${tipo}`, 105, 18, null, null, "center");
-        doc.autoTable({ startY: 40, head: [['ESTADO', 'TICKET', 'CLIENTE', 'VEHÍCULO', 'SALIDA']], body: movimientos.map(m => [m.ESTADO, m.CODIGO_CORRELATIVO, m.Cliente, m.TIPO_VEHICULO, m.HORA_SALIDA || '-']) });
-        doc.save(`${nombreArchivo}.pdf`);
-
-        // EXCEL
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.json_to_sheet(movimientos);
-        XLSX.utils.book_append_sheet(wb, ws, "Data");
-        XLSX.writeFile(wb, `${nombreArchivo}.xlsx`);
+        doc.setFontSize(16);
+        doc.text(`REPORTE DE MOVIMIENTOS - CORTE ${tipo}`, 105, 20, null, null, "center");
+        
+        doc.autoTable({ 
+            startY: 30, 
+            head: [['TICKET', 'CLIENTE', 'VEHÍCULO', 'INGRESO', 'SALIDA', 'ESTADO']], 
+            body: movimientos.map(m => [
+                m.CODIGO_CORRELATIVO, m.Cliente, m.TIPO_VEHICULO, 
+                formatearHora(m.HORA_INGRESO), formatearHora(m.HORA_SALIDA), m.ESTADO
+            ]) 
+        });
+        
+        doc.save(`Corte_${tipo}_${new Date().toLocaleDateString()}.pdf`);
 
         if (salirAlFinal) {
-            setTimeout(() => { localStorage.clear(); window.location.href = "login.html"; }, 2000);
+            localStorage.clear();
+            window.location.href = "login.html";
         }
-    } catch (e) {}
+    } catch (e) { console.error("Error en corte:", e); }
 }
 
-/* --- 5. USUARIOS (CON ELIMINAR) --- */
-async function abrirModalUsuarios() { 
-    document.getElementById("modal-usuarios").style.display = "flex"; 
-    cargarListaUsuarios(); 
+/* --- 5. BUSCADOR Y MODALES --- */
+function filtrarTabla() {
+    const texto = document.getElementById("buscador-principal").value.toLowerCase();
+    const filtrados = ticketsGlobal.filter(x => 
+        x.Cliente.toLowerCase().includes(texto) || 
+        x.DNI.includes(texto) || 
+        x.CODIGO_CORRELATIVO.toLowerCase().includes(texto)
+    );
+    renderTabla(filtrados);
+}
+
+function cerrarModal(id) { 
+    document.getElementById(id).style.display = "none";
+    if (id === 'modal-perdida' && streamCamara) {
+        streamCamara.getTracks().forEach(track => track.stop());
+    }
+}
+// initIdentidad DEBE CERRARSE AQUÍ PARA NO "TRAGARSE" LAS OTRAS FUNCIONES
+function initIdentidad() {
+    const inputDni = document.getElementById("documento-input");
+    if (!inputDni) return;
+
+    inputDni.addEventListener("input", async (e) => {
+        // Limpiamos :1 mientras escribe
+        const dniLimpio = limpiarId(e.target.value);
+        if (dniLimpio.length === 8) {
+            try { 
+                const r = await fetch(`http://127.0.0.1:3000/api/clientes/identidad/DNI/${dniLimpio}`);
+                if (r.ok) { 
+                    const d = await r.json(); 
+                    if (d.nombre) document.getElementById("nombre-cliente").value = d.nombre; 
+                } 
+            } catch (e) {}
+        }
+    });
+} // <--- ¡ESTA LLAVE ES LA QUE FALTABA O ESTABA AL FINAL DEL ARCHIVO!
+
+/* --- 6. GESTIÓN DE USUARIOS (GLOBALES AHORA) --- */
+async function abrirModalUsuarios() {
+    const modal = document.getElementById("modal-usuarios");
+    if(modal) {
+        modal.style.display = "flex";
+        await cargarListaUsuarios();
+    }
 }
 
 async function cargarListaUsuarios() {
     try {
         const res = await fetch("http://127.0.0.1:3000/api/auth/listar");
-        const usuarios = await res.json();
-        
-        document.getElementById("lista-usuarios-body").innerHTML = usuarios.map(u => `
-            <tr style="border-bottom: 1px solid #eee">
-                <td style="padding: 8px">${u.NOMBRE_EMPLEADO}</td>
-                <td><strong>${u.USERNAME}</strong></td>
-                <td><span class="badge" style="background:#64748b; color:white;">${u.ROL}</span></td>
-                <td style="text-align: center">
-                    <button onclick="eliminarUsuario(${u.ID_USUARIO}, '${u.USERNAME}')" 
-                            style="background:none; border:none; cursor:pointer; font-size: 1.2rem;" 
-                            title="Eliminar">
-                        🗑️
-                    </button>
-                </td>
-            </tr>`).join("");
-    } catch (e) { console.error("Error usuarios"); }
+        if(res.ok) {
+            const usuarios = await res.json();
+            const tbody = document.getElementById("lista-usuarios-body");
+            if(tbody) {
+                tbody.innerHTML = usuarios.map(u => `
+                    <tr style="border-bottom: 1px solid #eee">
+                        <td style="padding: 8px">${u.NOMBRE_EMPLEADO}</td>
+                        <td><strong>${u.USERNAME}</strong></td>
+                        <td><span class="badge" style="background:#64748b; color:white;">${u.ROL}</span></td>
+                        <td style="text-align: center">
+                            <button onclick="eliminarUsuario(${u.ID_USUARIO}, '${u.USERNAME}')" 
+                                    style="background:none; border:none; cursor:pointer;" title="Eliminar">🗑️</button>
+                        </td>
+                    </tr>`).join("");
+            }
+        }
+    } catch (e) { console.error("Error al cargar usuarios"); }
 }
 
 async function crearUsuario() {
-    const body = { 
-        nombre: document.getElementById("new-nombre").value, 
-        username: document.getElementById("new-user").value, 
-        password: document.getElementById("new-pass").value, 
-        rol: document.getElementById("new-rol").value, 
-        id_sede: 1 
+    const body = {
+        nombre: document.getElementById("new-nombre").value,
+        username: document.getElementById("new-user").value,
+        password: document.getElementById("new-pass").value,
+        rol: document.getElementById("new-rol").value,
+        id_sede: 1
     };
-    await fetch("http://127.0.0.1:3000/api/auth/registrar", { method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body) });
-    alert("✅ Creado"); cargarListaUsuarios();
+    try {
+        const res = await fetch("http://127.0.0.1:3000/api/auth/registrar", {
+            method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body)
+        });
+        if(res.ok) { alert("✅ Usuario Creado"); cargarListaUsuarios(); }
+    } catch(e) { alert("❌ Error al crear usuario"); }
 }
 
 async function eliminarUsuario(id, username) {
@@ -348,59 +390,108 @@ async function eliminarUsuario(id, username) {
     }
 }
 
-/* --- 6. HISTORIAL --- */
+/* --- 7. HISTORIAL Y CORTE (GLOBALES AHORA) --- */
 async function abrirHistorial() {
-    const res = await fetch("http://127.0.0.1:3000/api/clientes/hoy");
-    ticketsHistorial = await res.json();
-    document.getElementById("modal-historial").style.display = "flex";
-    renderHistorial(ticketsHistorial);
+    try {
+        const res = await fetch("http://127.0.0.1:3000/api/clientes/hoy");
+        if(res.ok) {
+            ticketsHistorial = await res.json();
+            document.getElementById("modal-historial").style.display = "flex";
+            renderHistorial(ticketsHistorial);
+        }
+    } catch(e) { console.error("Error historial"); }
 }
 
 function renderHistorial(lista) {
     const tbody = document.getElementById("historial-body");
     if (!tbody) return;
-
-    tbody.innerHTML = lista.map(t => {
-        let badgeClass = 'badge-activo'; 
-        if (t.ESTADO === 'Finalizado') badgeClass = 'badge-finalizado';
-        if (t.ESTADO === 'Perdido') badgeClass = 'badge-perdido';
-
-        return `<tr>
-            <td><span class="badge ${badgeClass}">${t.ESTADO || 'Activo'}</span></td>
+    tbody.innerHTML = lista.map(t => `
+        <tr>
+            <td><span class="badge ${t.ESTADO === 'Finalizado' ? 'badge-finalizado' : 'badge-activo'}">${t.ESTADO}</span></td>
             <td><strong>${t.CODIGO_CORRELATIVO}</strong></td>
             <td>${t.Cliente}</td>
             <td>${t.TIPO_VEHICULO || '-'}</td>
             <td>${formatearHora(t.HORA_INGRESO)}</td>
             <td>${t.HORA_SALIDA ? formatearHora(t.HORA_SALIDA) : '-'}</td>
-        </tr>`;
-    }).join("");
+        </tr>`).join("");
 }
 
-function filtrarHistorial() {
-    const texto = document.getElementById("filtro-historial").value.toLowerCase();
-    const filtrados = ticketsHistorial.filter(t => 
-        (t.Cliente && t.Cliente.toLowerCase().includes(texto)) || 
-        (t.CODIGO_CORRELATIVO && t.CODIGO_CORRELATIVO.toLowerCase().includes(texto)) ||
-        (t.TIPO_VEHICULO && t.TIPO_VEHICULO.toLowerCase().includes(texto))
-    );
-    renderHistorial(filtrados);
+// Esta función recibe "X" o "Z" y pide confirmación
+function cerrarSesionBoton(tipo = 'X') {
+    if (confirm(`¿Desea realizar el Corte ${tipo} y cerrar sesión?`)) {
+        ejecutarCorte(tipo, true);
+    }
 }
 
-/* --- UTILIDADES --- */
-function initIdentidad() {
-    document.getElementById("documento-input").addEventListener("input", async (e) => {
-        if (e.target.value.length >= 8) {
-            try { const r = await fetch(`http://127.0.0.1:3000/api/clientes/identidad/DNI/${e.target.value}`);
-            if(r.ok) { const d = await r.json(); if(d.nombre) document.getElementById("nombre-cliente").value = d.nombre; } } catch(e){}
-        }
+function imprimirPDFPerdida(d) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const fechaHoy = new Date().toLocaleDateString('es-PE');
+
+    // 1. ENCABEZADO (Barra Azul Oscura)
+    doc.setFillColor(30, 41, 59); // Color oscuro
+    doc.rect(0, 0, 210, 25, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.text("ACTA DE ENTREGA POR PÉRDIDA DE TICKET", 105, 12, null, null, "center");
+    doc.setFontSize(10);
+    doc.text(`EXPEDIENTE: ${d.codigo} | FECHA: ${fechaHoy}`, 105, 19, null, null, "center");
+
+    // 2. SECCIÓN 1: DATOS DEL VEHÍCULO (Tabla)
+    doc.setTextColor(0, 0, 0);
+    doc.autoTable({
+        startY: 35,
+        head: [['1. DATOS DEL VEHÍCULO Y PROPIETARIO REGISTRADO']],
+        body: [
+            [`Ticket Original: ${d.codigo}`, `Vehículo: ${d.vehiculo}`],
+            [`Propietario: ${d.cliente}`, `Marca/Color: ${d.marca} / ${d.color}`],
+            [`Documento: ${d.dni}`, `Hora Ingreso: ${d.ingreso}`]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [240, 240, 240], textColor: 50, fontStyle: 'bold' },
+        styles: { fontSize: 10 }
     });
-}
-function cerrarModal(id) { 
-    document.getElementById(id).style.display = "none";
-    if(id === 'modal-perdida' && streamCamara) streamCamara.getTracks().forEach(t => t.stop());
-}
-function filtrarTabla() {
-    const t = document.getElementById("buscador-principal").value.toLowerCase();
-    const f = ticketsGlobal.filter(x => x.Cliente.toLowerCase().includes(t) || x.DNI.includes(t));
-    renderTabla(f);
+
+    // 3. SECCIÓN 2: DATOS DEL SOLICITANTE (Tabla)
+    doc.autoTable({
+        startY: doc.lastAutoTable.finalY + 10,
+        head: [['2. DATOS DEL SOLICITANTE (QUIEN RETIRA)']],
+        body: [
+            [`Dirección Domiciliaria: ${d.direccion}`],
+            [`Teléfono de Contacto: ${d.telefono}`, `Correo: ${d.correo}`]
+        ],
+        theme: 'grid',
+        headStyles: { fillColor: [240, 240, 240], textColor: 50, fontStyle: 'bold' }
+    });
+
+    // 4. SECCIÓN 3: EVIDENCIA (Fotos lado a lado)
+    const yFotos = doc.lastAutoTable.finalY + 15;
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("3. EVIDENCIA DE IDENTIDAD Y ENTREGA", 14, yFotos);
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("ROSTRO DEL SOLICITANTE", 50, yFotos + 8, null, null, "center");
+    doc.text("DOCUMENTO PRESENTADO", 150, yFotos + 8, null, null, "center");
+
+    // Insertar imágenes (Ancho, Alto) - Ajustado para que entren bien
+    try {
+        doc.addImage(d.foto2, 'JPEG', 15, yFotos + 12, 80, 60); // Rostro
+        doc.addImage(d.foto1, 'JPEG', 115, yFotos + 12, 80, 60); // DNI
+    } catch(e) { console.error("Error cargando imagenes al PDF"); }
+
+    // 5. PIE DE PÁGINA LEGAL (Ley 29733)
+    const yFooter = 260; // Parte baja de la hoja
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.text("DECLARACIÓN DE CONFORMIDAD Y PROTECCIÓN DE DATOS:", 14, yFooter);
+    
+    const textoLegal = `De conformidad con la Ley N° 29733, se deja constancia del registro de imagen y datos personales del solicitante únicamente con fines de seguridad y auditoría.\nEl solicitante declara haber recibido el vehículo en las condiciones descritas y libera al establecimiento de cualquier reclamo posterior.`;
+    
+    doc.setFont("helvetica", "italic");
+    doc.text(textoLegal, 14, yFooter + 6, { maxWidth: 180, align: "justify" });
+
+    // Descargar
+    doc.save(`Acta_Perdida_${d.codigo}.pdf`);
 }
