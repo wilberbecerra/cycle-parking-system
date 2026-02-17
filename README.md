@@ -28,18 +28,17 @@ A diferencia de los sistemas de parking convencionales, **CyclePark** integra un
 | ![Login](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/73f48f55968cbe803cac92b064eaefad985d28ed/public/assets/login.jpg) | ![Sesion_Bloqueada](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/60e5b791ed632d27ff02d654542eb218d705d05b/public/assets/sesion-bloqueada.jpg) | ![Usuarios](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/73f48f55968cbe803cac92b064eaefad985d28ed/public/assets/gesti%C3%B3n-usuarios.jpg) |
 | *Inicio de sesión con validación de credenciales* | *Protección de contexto de turno y bloqueo de UI* | *Panel exclusivo para **Administradores*** |
 
-### 🚲 Operación y Control de Bajas
-| Panel de Control (Dashboard) | Protocolo de Anulación | Acta de Anulación (PDF) |
-|:----------------------------:|:----------------------:|:-----------------------:|
-| ![Dashboard](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/54d8917e8462e1994054852bf858de97fa5d93dc/public/assets/dashboard-principal.jpg) | ![Protocolo_Anulacion](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/60e5b791ed632d27ff02d654542eb218d705d05b/public/assets/protocolo-de-anulacion.jpg) | ![Acta_Anulacion](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/60e5b791ed632d27ff02d654542eb218d705d05b/public/assets/acta-de-entrega-por-perdida-de-ticket.jpg) |
-| *Control de aforo y tickets activos en tiempo real* | *Verificación administrativa híbrida (Bcrypt/Plain)* | *Registro legal de baja de inventario* |
+### 📄 Emisión de Tickets y Control Operativo
+| Panel de Control (Dashboard) | Ticket Térmico (POS) | Protocolo de Anulación |
+|:----------------------------:|:--------------------:|:----------------------:|
+| ![Dashboard](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/54d8917e8462e1994054852bf858de97fa5d93dc/public/assets/dashboard-principal.jpg) | ![Ticket_Ejemplo](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/7851b50d7a1706faa9c3185590798e7be592b676/public/assets/ticket-parking.jpg) | ![Protocolo_Anulacion](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/60e5b791ed632d27ff02d654542eb218d705d05b/public/assets/protocolo-de-anulacion.jpg) |
+| *Registro de ingresos y aforo en tiempo real* | *Generación dinámica PDF (80mm) con normativa legal* | *Verificación administrativa híbrida* |
 
-### 🚨 Protocolos Legales y Auditoría
+### 🚨 Auditoría y Legalidad
 | Acta de Pérdida de Ticket | Reportes Corporativos (PDF) | Exportación de Datos (Excel) |
 |:-------------------------:|:---------------------------:|:----------------------------:|
 | ![Acta_Perdida](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/73f48f55968cbe803cac92b064eaefad985d28ed/public/assets/acta-de-perdida-de-ticket.jpg) | ![Corte_X](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/73f48f55968cbe803cac92b064eaefad985d28ed/public/assets/corte-x.jpg) | ![Excel](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/73f48f55968cbe803cac92b064eaefad985d28ed/public/assets/excel.png) |
 | *Captura de evidencia fotográfica (Ley 29733)* | *Cortes X/Z generados con diseño empresarial* | *Tablas estilizadas para auditoría financiera* |
-
 *(Nota: Las imágenes representan el flujo real de trabajo en la sede La Rambla Brasil)*
 
 ---
