@@ -202,36 +202,135 @@
 
     <div id="modal-editar" class="modal">
       <div class="modal-content" style="width: 500px">
-        <h3>✏️ Editar Datos del Ticket</h3>
+        <h3>📝 Bitácora de Observaciones</h3>
+        <p style="font-size: 0.85rem; color: #64748b">
+          Los datos principales están bloqueados por seguridad.
+        </p>
+
         <input type="hidden" id="edit-id-ticket" />
+
         <div class="input-group">
-          <label>Nombre Cliente</label><input type="text" id="edit-nombre" />
+          <label>Nombre Cliente</label>
+          <input
+            type="text"
+            id="edit-nombre"
+            class="input-bloqueado"
+            readonly
+          />
         </div>
+
         <div
           class="form-grid"
           style="grid-template-columns: 1fr 1fr; gap: 10px"
         >
           <div class="input-group">
-            <label>Marca</label><input type="text" id="edit-marca" />
+            <label>Marca</label>
+            <input
+              type="text"
+              id="edit-marca"
+              class="input-bloqueado"
+              readonly
+            />
           </div>
           <div class="input-group">
-            <label>Color</label><input type="text" id="edit-color" />
+            <label>Color</label>
+            <input
+              type="text"
+              id="edit-color"
+              class="input-bloqueado"
+              readonly
+            />
           </div>
         </div>
+
         <div class="input-group">
-          <label>Observaciones</label
-          ><textarea id="edit-obs" rows="3"></textarea>
+          <label style="color: var(--primary); font-weight: bold"
+            >➕ Agregar / Editar Observaciones</label
+          >
+          <textarea
+            id="edit-obs"
+            rows="4"
+            placeholder="Ej: Cliente reporta rayón antiguo, Se verificó cadena..."
+          ></textarea>
         </div>
+
         <div style="display: flex; gap: 10px; margin-top: 15px">
           <button
             onclick="guardarEdicion()"
             class="btn-primary"
             style="margin: 0"
           >
-            Guardar Cambios
+            💾 Guardar Nota
           </button>
           <button
             onclick="cerrarModal('modal-editar')"
+            style="
+              background: grey;
+              color: white;
+              border: none;
+              padding: 10px;
+              border-radius: 8px;
+              width: 100%;
+            "
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-anulacion" class="modal">
+      <div
+        class="modal-content"
+        style="width: 500px; border-top: 5px solid #ef4444"
+      >
+        <h3 style="color: #ef4444; margin-top: 0">🚨 Protocolo de Anulación</h3>
+        <div
+          style="
+            background: #fef2f2;
+            color: #991b1b;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+          "
+        >
+          ⚠️ Esta acción es irreversible. Se requiere autorización de un
+          Administrador.
+        </div>
+
+        <input type="hidden" id="anular-id-ticket" />
+
+        <div class="input-group">
+          <label>Motivo de la Anulación (*)</label>
+          <textarea
+            id="anular-motivo"
+            rows="3"
+            placeholder="Detalle la razón (Ej: Error de digitación, Cliente se retiró sin ingresar...)"
+          ></textarea>
+        </div>
+
+        <hr style="border: 0.5px solid #eee; margin: 15px 0" />
+
+        <div class="input-group">
+          <label>👮 Contraseña de Administrador</label>
+          <input
+            type="password"
+            id="anular-pass-admin"
+            placeholder="Ingrese credencial de supervisor"
+          />
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 15px">
+          <button
+            onclick="confirmarAnulacion()"
+            class="btn-primary"
+            style="background: #ef4444; margin: 0"
+          >
+            CONFIRMAR ANULACIÓN
+          </button>
+          <button
+            onclick="cerrarModal('modal-anulacion')"
             style="
               background: grey;
               color: white;

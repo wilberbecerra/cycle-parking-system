@@ -366,6 +366,18 @@ tr:hover td { background-color: #fcfcfd; }
     justify-content: center;
 }
 
+/* Nuevo botón para Anular */
+.btn-cancel {
+    background-color: #334155; /* Gris oscuro */
+}
+
+/* Estilo para inputs bloqueados (Readonly) en el modal de editar */
+.input-bloqueado {
+    background-color: #e2e8f0;
+    color: #64748b;
+    cursor: not-allowed;
+    border: 1px solid #cbd5e1;
+}
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }

@@ -8,17 +8,17 @@ router.get('/activos', async (req, res) => {
     try {
         const pool = await getConnection();
         const result = await pool.request().query(`
-            SELECT t.ID_TICKET, t.CODIGO_CORRELATIVO, c.NOMBRE_COMPLETO AS Cliente, c.DNI, 
+            SELECT t.ID_TICKET, t.CODIGO_CORRELATIVO, c.NOMBRE_COMPLETO AS Cliente, c.DNI,
                    ISNULL(c.TIPO_DOCUMENTO, 'DNI') as TIPO_DOCUMENTO,
-                   t.MARCA_BICI, t.COLOR_BICI, t.TIPO_VEHICULO, t.OBSERVACIONES, 
-                   t.ESTADO, t.HORA_INGRESO 
-            FROM PRK_TICKETS t 
-            INNER JOIN PRK_CLIENTES c ON t.DNI_CLIENTE = c.DNI 
-            WHERE t.ESTADO = 'Activo' 
+                   t.MARCA_BICI, t.COLOR_BICI, t.TIPO_VEHICULO, t.OBSERVACIONES,
+                   t.ESTADO, t.HORA_INGRESO
+            FROM PRK_TICKETS t
+            INNER JOIN PRK_CLIENTES c ON t.DNI_CLIENTE = c.DNI
+            WHERE t.ESTADO = 'Activo'
             ORDER BY t.ID_TICKET DESC`);
         res.json(result.recordset);
-    } catch (e) { 
-        res.status(500).send(e.message); 
+    } catch (e) {
+        res.status(500).send(e.message);
     }
 });
 
@@ -41,11 +41,11 @@ router.post('/', async (req, res) => {
             await pool.request()
                 .input('d', sql.VarChar(20), dni_cliente)
                 .input('n', sql.VarChar(150), nombre_manual || 'CLIENTE NUEVO')
-                .query(`INSERT INTO PRK_CLIENTES (DNI, NOMBRE_COMPLETO, TIPO_DOCUMENTO, ORIGEN_DATOS, TIPO_CLIENTE) 
+                .query(`INSERT INTO PRK_CLIENTES (DNI, NOMBRE_COMPLETO, TIPO_DOCUMENTO, ORIGEN_DATOS, TIPO_CLIENTE)
                         VALUES (@d, @n, 'DNI', 'Manual', 'General')`);
         }
 
- 
+
         const ahora = new Date();
         await pool.request()
             .input('d', sql.VarChar(20), dni_cliente)
@@ -55,9 +55,9 @@ router.post('/', async (req, res) => {
             .input('tv', sql.VarChar(50), tipo_vehiculo || 'Bicicleta')
             .input('obs', sql.VarChar(sql.MAX), observaciones || '')
             .input('fh', sql.DateTime, ahora)
- 
-            .query(`INSERT INTO PRK_TICKETS 
-                    (DNI_CLIENTE, ID_USUARIO_INGRESO, MARCA_BICI, COLOR_BICI, TIPO_VEHICULO, OBSERVACIONES, TIENE_CADENA, ESTADO, FECHA_INGRESO, HORA_INGRESO) 
+
+            .query(`INSERT INTO PRK_TICKETS
+                    (DNI_CLIENTE, ID_USUARIO_INGRESO, MARCA_BICI, COLOR_BICI, TIPO_VEHICULO, OBSERVACIONES, TIENE_CADENA, ESTADO, FECHA_INGRESO, HORA_INGRESO)
                     VALUES (@d, @u, @m, @c, @tv, @obs, 0, 'Activo', @fh, @fh)`);
 
         res.status(201).send("OK");
@@ -146,6 +146,65 @@ router.put('/:id', async (req, res) => {
     } catch (e) {
         console.error("❌ Error al editar:", e.message);
         res.status(500).send("Error en la base de datos: " + e.message);
+    }
+});
+
+
+router.post('/anular', async (req, res) => {
+    const { idTicket, motivo, passAdmin } = req.body;
+
+    try {
+        const pool = await getConnection();
+
+        const adminCheck = await pool.request()
+            .input('pass', sql.VarChar, passAdmin)
+            .query("SELECT TOP 1 NOMBRE_EMPLEADO FROM PRK_USUARIOS WHERE ROL = 'Administrador' AND PASSWORD_HASH = @pass");
+
+        if (adminCheck.recordset.length === 0) {
+            return res.status(401).json({ mensaje: 'Autorización Denegada: Contraseña incorrecta o usuario no es Administrador.' });
+        }
+
+        const nombreAdmin = adminCheck.recordset[0].NOMBRE_EMPLEADO;
+
+
+        await pool.request()
+            .input('id', sql.Int, idTicket)
+            .input('motivo', sql.VarChar, motivo)
+            .input('admin', sql.VarChar, nombreAdmin)
+            .query(`
+                UPDATE PRK_TICKETS
+                SET ESTADO = 'Anulado',
+                    MOTIVO_ANULACION = @motivo,
+                    ADMIN_AUTORIZA = @admin,
+                    FECHA_ANULACION = GETDATE()
+                WHERE ID_TICKET = @id
+            `);
+
+        const ticketData = await pool.request()
+            .input('id', sql.Int, idTicket)
+            .query(`
+                SELECT
+                    T.CODIGO_CORRELATIVO as codigo_ticket,
+                    T.FECHA_INGRESO as fecha_ingreso,
+                    C.NOMBRE_COMPLETO as nombre_cliente,
+                    T.TIPO_VEHICULO as tipo_vehiculo,
+                    T.MARCA_BICI as marca,
+                    T.COLOR_BICI as color,
+                    T.MOTIVO_ANULACION as motivo,
+                    T.ADMIN_AUTORIZA as admin_autoriza
+                FROM PRK_TICKETS T
+                INNER JOIN PRK_CLIENTES C ON T.DNI_CLIENTE = C.DNI
+                WHERE T.ID_TICKET = @id
+            `);
+
+        res.json({ 
+            mensaje: 'Anulado con éxito',
+            datosAnulacion: ticketData.recordset[0]
+        });
+
+    } catch (error) {
+        console.error("Error al anular:", error);
+        res.status(500).send(error.message);
     }
 });
 

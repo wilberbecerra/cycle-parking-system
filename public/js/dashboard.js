@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!localStorage.getItem("horaInicioTurno")) {
         localStorage.setItem("horaInicioTurno", new Date().toISOString());
     }
-   
+
     const rol = localStorage.getItem("usuarioRol");
     if (rol === "Administrador") {
         const btn = document.getElementById("btn-admin-usuarios");
@@ -69,9 +69,10 @@ function renderTabla(lista) {
             <td>${marca} / ${color}</td>
             <td><span class="badge badge-activo">ACTIVO</span></td>
             <td style="white-space: nowrap;">
-                <button onclick="abrirEditar(${t.ID_TICKET})" class="btn-action btn-edit">✏️ Editar</button>
-                <button onclick="marcarSalida(${t.ID_TICKET})" class="btn-action btn-out">📤 Salida</button>
-                <button onclick="abrirPerdida(${t.ID_TICKET})" class="btn-action btn-loss">🚨 Pérdida</button>
+                <button onclick="abrirEditar(${t.ID_TICKET})" class="btn-action btn-edit" title="Agregar Observación">Observaciones 📝</button>
+                <button onclick="marcarSalida(${t.ID_TICKET})" class="btn-action btn-out" title="Marcar Salida">Salida 📤</button>
+                <button onclick="abrirPerdida(${t.ID_TICKET})" class="btn-action btn-loss" title="Reportar Pérdida">Perdida 🚨</button>
+                <button onclick="abrirAnulacion(${t.ID_TICKET})" class="btn-action btn-cancel" title="Anular Ticket">Anulación 🗑️</button>
             </td>
         </tr>`;
     }).join("");
@@ -680,4 +681,132 @@ function filtrarHistorial() {
     });
 
     renderHistorial(filtrados);
+}
+
+function imprimirTicketEntrada(ticket, esOriginal = false) {
+    const doc = new jspdf.jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [80, 250]
+    });
+
+    doc.setFont("courier", "bold");
+    let y = 10;
+
+    if (!esOriginal) {
+        doc.setTextColor(150);
+        doc.setFontSize(20);
+
+        doc.text("*** COPIA ***", 40, 5, { align: "center" });
+        doc.text("*** REIMPRESIÓN ***", 40, 245, { align: "center" });
+        doc.setTextColor(0);
+    }
+
+    doc.setFontSize(12);
+    doc.text("PARKING CONTROL - SEDE BRASIL", 40, y, { align: "center" }); y += 5;
+
+    doc.setFontSize(9);
+    doc.text("Operado por: APPARKA (La Rambla)", 40, y, { align: "center" }); y += 4;
+    doc.text("RUC: 20123456789", 40, y, { align: "center" }); y += 6;
+
+    doc.text("--------------------------------------", 40, y, { align: "center" }); y += 5;
+
+    doc.setFontSize(11);
+    doc.text(`TICKET: ${ticket.codigo_ticket}`, 5, y); y += 6;
+
+    const nombreArchivo = esOriginal ? `Ticket_${ticket.codigo_ticket}.pdf` : `Ticket_${ticket.codigo_ticket}_COPIA.pdf`;
+    doc.save(nombreArchivo);
+}
+
+
+
+function abrirAnulacion(id) {
+    document.getElementById("anular-id-ticket").value = id;
+    document.getElementById("anular-motivo").value = "";
+    document.getElementById("anular-pass-admin").value = "";
+    document.getElementById("modal-anulacion").style.display = "flex";
+}
+
+async function confirmarAnulacion() {
+    const idTicket = document.getElementById("anular-id-ticket").value;
+    const motivo = document.getElementById("anular-motivo").value.trim();
+    const passAdmin = document.getElementById("anular-pass-admin").value.trim();
+
+    if (!motivo) return alert("⚠️ Debe especificar un motivo para la anulación.");
+    if (!passAdmin) return alert("⚠️ Se requiere la contraseña de administrador.");
+
+
+    if (!confirm("¿Está seguro de anular este ticket? Esta acción no se puede deshacer.")) return;
+
+    try {
+        const res = await fetch("http://127.0.0.1:3000/api/tickets/anular", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idTicket, motivo, passAdmin })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert("✅ Ticket Anulado Correctamente.");
+            cerrarModal('modal-anulacion');
+
+
+            generarPDFAnulacion(data.datosAnulacion);
+
+
+            await cargarActivos();
+        } else {
+            alert("❌ Error: " + (data.mensaje || "Contraseña incorrecta o error de servidor"));
+        }
+    } catch (e) {
+        console.error(e);
+        alert("❌ Error de conexión al intentar anular.");
+    }
+}
+
+function generarPDFAnulacion(d) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFillColor(220, 38, 38);
+    doc.rect(0, 0, 210, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("ACTA DE ANULACIÓN DE TICKET", 105, 18, null, null, "center");
+
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+
+    let y = 45;
+    doc.text(`TICKET ANULADO: ${d.codigo_ticket || '---'}`, 20, y); y += 8;
+    doc.text(`FECHA ORIGINAL: ${new Date(d.fecha_ingreso).toLocaleString()}`, 20, y); y += 8;
+    doc.text(`CLIENTE: ${d.nombre_cliente}`, 20, y); y += 8;
+    doc.text(`VEHÍCULO: ${d.tipo_vehiculo} - ${d.marca} (${d.color})`, 20, y); y += 15;
+
+
+    doc.setFont("helvetica", "bold");
+    doc.text("DETALLES DE LA OPERACIÓN", 20, y); y += 10;
+    doc.setFont("helvetica", "normal");
+
+    doc.text(`FECHA ANULACIÓN: ${new Date().toLocaleString()}`, 20, y); y += 8;
+    doc.text(`AUTORIZADO POR: ${d.admin_autoriza || 'Administrador'}`, 20, y); y += 15;
+
+    doc.setFont("helvetica", "bold");
+    doc.text("MOTIVO REGISTRADO:", 20, y); y += 7;
+    doc.setFont("helvetica", "normal");
+
+
+    const splitMotivo = doc.splitTextToSize(d.motivo, 170);
+    doc.text(splitMotivo, 20, y);
+
+
+    doc.setFontSize(8);
+    doc.setTextColor(100);
+    doc.text("Este documento certifica la baja del ticket en el sistema de inventario.", 105, 280, null, null, "center");
+
+    doc.save(`Anulacion_${d.codigo_ticket}.pdf`);
 }
