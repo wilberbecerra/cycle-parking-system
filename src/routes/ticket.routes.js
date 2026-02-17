@@ -23,16 +23,15 @@ router.get('/activos', async (req, res) => {
     }
 });
 
-
 router.post('/', async (req, res) => {
     let { dni_cliente, nombre_manual, marca, color, tipo_vehiculo, observaciones, id_usuario_ingreso } = req.body;
 
     try {
-
         if (dni_cliente) dni_cliente = dni_cliente.toString().replace(':1', '');
         const vUsuario = id_usuario_ingreso ? id_usuario_ingreso.toString().replace(':1', '') : 1;
 
         const pool = await getConnection();
+
 
         const check = await pool.request()
             .input('d', sql.VarChar(20), dni_cliente)
@@ -56,12 +55,21 @@ router.post('/', async (req, res) => {
             .input('tv', sql.VarChar(50), tipo_vehiculo || 'Bicicleta')
             .input('obs', sql.VarChar(sql.MAX), observaciones || '')
             .input('fh', sql.DateTime, ahora)
-
             .query(`INSERT INTO PRK_TICKETS
                     (DNI_CLIENTE, ID_USUARIO_INGRESO, MARCA_BICI, COLOR_BICI, TIPO_VEHICULO, OBSERVACIONES, TIENE_CADENA, ESTADO, FECHA_INGRESO, HORA_INGRESO)
                     VALUES (@d, @u, @m, @c, @tv, @obs, 0, 'Activo', @fh, @fh)`);
 
-        res.status(201).send("OK");
+        const resultTicket = await pool.request()
+            .query("SELECT TOP 1 CODIGO_CORRELATIVO FROM PRK_TICKETS ORDER BY ID_TICKET DESC");
+
+        const nuevoCodigo = resultTicket.recordset[0]?.CODIGO_CORRELATIVO || "PENDIENTE";
+
+
+        res.status(201).json({
+            mensaje: "Ticket creado correctamente",
+            codigo_ticket: nuevoCodigo
+        });
+
     } catch (e) {
         console.error("Error SQL:", e.message);
         res.status(500).send("Error interno: " + e.message);

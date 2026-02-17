@@ -30,13 +30,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  
 
-  background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.8)), 
+
+  background: linear-gradient(rgba(15, 23, 42, 0.6), rgba(15, 23, 42, 0.8)),
               url('../assets/wallpaper-login.png');
-  
-  background-size: cover;     
-  background-position: center; 
+
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
   padding: 20px;
 }
@@ -203,7 +203,7 @@ h3 {
 
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Responsivo automático */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   align-items: end;
 }
@@ -366,18 +366,18 @@ tr:hover td { background-color: #fcfcfd; }
     justify-content: center;
 }
 
-/* Nuevo botón para Anular */
 .btn-cancel {
-    background-color: #334155; /* Gris oscuro */
+    background-color: #334155; 
 }
 
-/* Estilo para inputs bloqueados (Readonly) en el modal de editar */
+
 .input-bloqueado {
     background-color: #e2e8f0;
     color: #64748b;
     cursor: not-allowed;
     border: 1px solid #cbd5e1;
 }
+
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }

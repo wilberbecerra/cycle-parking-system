@@ -108,18 +108,24 @@ async function cargarActivos() {
 async function guardarTicket() {
     const rawId = localStorage.getItem("usuarioId");
     const idUsuario = limpiarId(rawId);
+    
+    // RECOLECCIÓN DE DATOS DEL FORMULARIO
     const dni = limpiarId(document.getElementById("documento-input").value);
     const nombre = document.getElementById("nombre-cliente").value.trim();
+    const tipo = document.getElementById("tipo-vehiculo").value;
+    const marca = document.getElementById("marca").value.trim();
+    const color = document.getElementById("color").value.trim();
+    const obs = document.getElementById("observaciones").value.trim();
 
     if (!dni || !nombre) return alert("⚠️ DNI y Nombre son obligatorios.");
 
     const body = {
         dni_cliente: dni,
         nombre_manual: nombre,
-        tipo_vehiculo: document.getElementById("tipo-vehiculo").value,
-        marca: document.getElementById("marca").value.trim(),
-        color: document.getElementById("color").value.trim(),
-        observaciones: document.getElementById("observaciones").value.trim(),
+        tipo_vehiculo: tipo,
+        marca: marca,
+        color: color,
+        observaciones: obs,
         id_usuario_ingreso: parseInt(idUsuario) || 1
     };
 
@@ -131,13 +137,33 @@ async function guardarTicket() {
         });
 
         if (res.ok) {
+            const data = await res.json(); 
             alert("✅ Ticket Registrado");
-            location.reload();
+
+            // AQUÍ PASAMOS TODOS LOS DATOS PARA QUE SE IMPRIMAN
+            // Usamos 'data.codigo_ticket' del backend, y el resto del formulario
+            if (data && (data.codigo_ticket || data.CODIGO_CORRELATIVO)) {
+                imprimirTicketEntrada({
+                    codigo_ticket: data.codigo_ticket || data.CODIGO_CORRELATIVO,
+                    nombre_cliente: nombre,  // Dato del formulario
+                    dni: dni,                // Dato del formulario
+                    tipo: tipo,              // Dato del formulario
+                    marca: marca,            // Dato del formulario
+                    color: color,            // Dato del formulario
+                    fecha: new Date().toLocaleString('es-PE')
+                }, true);
+            }
+
+            setTimeout(() => { location.reload(); }, 1500);
+
         } else {
             const err = await res.text();
             alert("❌ Error del servidor: " + err);
         }
-    } catch (e) { alert("❌ Error de conexión al crear ticket."); }
+    } catch (e) { 
+        console.error(e);
+        alert("❌ Error de conexión."); 
+    }
 }
 
 
@@ -676,7 +702,7 @@ function imprimirPDFPerdida(d) {
 function filtrarHistorial() {
 
     const input = document.getElementById("filtro-historial");
-    if (!input) return; 
+    if (!input) return;
 
     const texto = input.value.toLowerCase().trim();
 
@@ -702,40 +728,102 @@ function filtrarHistorial() {
 }
 
 function imprimirTicketEntrada(ticket, esOriginal = false) {
-    const doc = new jspdf.jsPDF({
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
-        format: [80, 250]
+        format: [80, 155]
     });
 
     doc.setFont("courier", "bold");
-    let y = 10;
+    let y = 5;
+
 
     if (!esOriginal) {
         doc.setTextColor(150);
-        doc.setFontSize(20);
-
-        doc.text("*** COPIA ***", 40, 5, { align: "center" });
-        doc.text("*** REIMPRESIÓN ***", 40, 245, { align: "center" });
+        doc.setFontSize(14);
+        doc.text("*** COPIA ***", 40, y + 5, { align: "center" });
         doc.setTextColor(0);
+        y += 10;
     }
 
     doc.setFontSize(12);
-    doc.text("PARKING CONTROL - SEDE BRASIL", 40, y, { align: "center" }); y += 5;
+    doc.text("PARKING CONTROL", 40, y, { align: "center" }); y += 5;
+    doc.setFontSize(10);
+    doc.text("SEDE BRASIL - LA RAMBLA", 40, y, { align: "center" }); y += 4;
+    doc.setFontSize(8);
+    doc.text("RUC: 20123456789", 40, y, { align: "center" }); y += 5;
+    doc.setLineWidth(0.5);
+    doc.line(5, y, 75, y); y += 5;
+
+
+    doc.setFontSize(13);
+    doc.text(`TICKET: ${ticket.codigo_ticket}`, 40, y, { align: "center" }); y += 8;
 
     doc.setFontSize(9);
-    doc.text("Operado por: APPARKA (La Rambla)", 40, y, { align: "center" }); y += 4;
-    doc.text("RUC: 20123456789", 40, y, { align: "center" }); y += 6;
+    doc.setFont("courier", "normal");
 
-    doc.text("--------------------------------------", 40, y, { align: "center" }); y += 5;
+    const imprimirFila = (titulo, valor) => {
+        doc.setFont("courier", "bold");
+        doc.text(titulo, 5, y);
+        doc.setFont("courier", "normal");
 
-    doc.setFontSize(11);
-    doc.text(`TICKET: ${ticket.codigo_ticket}`, 5, y); y += 6;
+        const textoAjustado = doc.splitTextToSize(valor || "-", 45);
+        doc.text(textoAjustado, 30, y);
+        y += (textoAjustado.length * 4) + 2;
+    };
 
+    imprimirFila("FECHA:", ticket.fecha);
+    imprimirFila("CLIENTE:", ticket.nombre_cliente);
+    imprimirFila("DNI/CE:", ticket.dni);
+
+    doc.line(5, y, 75, y); y += 4;
+
+    imprimirFila("VEHICULO:", ticket.tipo);
+    imprimirFila("MARCA:", ticket.marca);
+    imprimirFila("COLOR:", ticket.color);
+
+    doc.line(5, y, 75, y); y += 5;
+
+
+    doc.setFontSize(7);
+    const politicas = [
+        "CONDICIONES DE USO Y CUSTODIA:",
+        "1. TICKET: Este documento es el único medio",
+        "   válido para retirar el vehículo.",
+        "",
+        "2. USO OBLIGATORIO DE RACKS: El vehículo",
+        "   debe ser asegurado CORRECTAMENTE DENTRO",
+        "   de la estructura del rack asignado.",
+        "",
+        "3. SEGURIDAD: La empresa NO se hace",
+        "   responsable por vehículos estacionados",
+        "   SIN CADENA o mal asegurados.",
+        "",
+        "4. OBJETOS DE VALOR: La empresa NO CUSTODIA",
+        "   accesorios (cascos, luces, guantes).",
+        "",
+        "5. PÉRDIDA DE TICKET: Se aplicará el",
+        "   protocolo legal (Ley 29733).",
+        "",
+        "6. Horario: 05:00am a 10:00pm."
+    ];
+
+    politicas.forEach(linea => {
+
+        const renglones = doc.splitTextToSize(linea, 70);
+        doc.text(renglones, 5, y);
+        y += (renglones.length * 3);
+    });
+
+    y += 5;
+    doc.setFontSize(9);
+    doc.text("*** GRACIAS POR SU VISITA ***", 40, y, { align: "center" });
+
+    // Descargar
     const nombreArchivo = esOriginal ? `Ticket_${ticket.codigo_ticket}.pdf` : `Ticket_${ticket.codigo_ticket}_COPIA.pdf`;
     doc.save(nombreArchivo);
 }
-
 
 
 function abrirAnulacion(id) {
