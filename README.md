@@ -89,3 +89,46 @@ cycle-parking-system/
 │
 ├── .env                        # Variables de entorno (no versionado)
 └── package.json                # Dependencias y scripts de ejecución
+```
+
+---
+
+## Instalación y Ejecución Local
+
+### Prerrequisitos
+
+*   Node.js v18 o superior.
+*   Instancia activa de Microsoft SQL Server.
+
+### Pasos de configuración
+
+1. **Clonar el repositorio:**
+
+```bash
+git clone [https://github.com/wilberbecerra/cycle-parking-system.git](https://github.com/wilberbecerra/cycle-parking-system.git)
+cd cycle-parking-system
+```
+
+2. **Instalar dependencias:**
+
+```bash
+npm install
+```
+
+3. **Configurar variables de entorno:**
+
+Crea un archivo `.env` en la raíz del proyecto con las credenciales de tu instancia local:
+
+```env
+PORT=3000
+DB_SERVER=localhost
+DB_USER=tu_usuario
+DB_PASSWORD=tu_password
+DB_DATABASE=CycleParkDB
+```
+
+4. **Iniciar el servidor:**
+
+```bash
+npm start
+```
