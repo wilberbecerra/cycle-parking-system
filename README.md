@@ -80,7 +80,8 @@ cycle-parking-system/
 │   └── views/                  # Vistas HTML (Login, Dashboard y módulos)
 │
 ├── src/                        # Capa de Lógica de Negocio y Datos (Backend)
-│   ├── config/                 # Configuración y pool de conexión a SQL Server
+│   ├── config/                 # Configuración de conexión a Base de Datos
+│   │   └── db.js               # Pool de conexión a SQL Server
 │   ├── routes/                 # Definición de endpoints REST
 │   │   ├── auth.routes.js      # Autenticación, sesiones y usuarios
 │   │   ├── client.routes.js    # Registro y consulta de clientes
@@ -117,13 +118,14 @@ npm install
 
 3. **Configurar variables de entorno:**
 
-Crea un archivo `.env` en la raíz del proyecto con las credenciales de tu instancia local:
+Crea un archivo `.env` en la raíz del proyecto con las credenciales de tu instancia local de SQL Server:
 
 ```env
 PORT=3000
-DB_SERVER=localhost
 DB_USER=tu_usuario
 DB_PASSWORD=tu_password
+DB_SERVER=localhost
+DB_PORT=1433
 DB_DATABASE=CycleParkDB
 ```
 
