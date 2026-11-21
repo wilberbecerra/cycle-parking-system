@@ -1,89 +1,91 @@
-# 🚲 CyclePark: Access Control & Ticket Inventory System
+# CyclePark — Sistema de Control de Acceso e Inventario de Tickets
 
-![Project Status](https://img.shields.io/badge/STATUS-COMPLETED-success)
-![Node Version](https://img.shields.io/badge/Node.js-v18%2B-green)
-![SQL Server](https://img.shields.io/badge/Database-SQL%20Server-red)
+![Estado](https://img.shields.io/badge/Estado-Completado-1f883d?style=flat-square)
+![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=flat-square&logo=express&logoColor=white)
+![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=flat-square&logoColor=white)
 
-**CyclePark** es una solución integral de software diseñada para la gestión operativa, emisión de tickets y seguridad física de estacionamientos de vehículos menores. El sistema digitaliza el flujo de ingresos mediante impresión térmica dinámica, asegura la integridad de los datos del cliente y cumple con normativas legales de custodia.
-
----
-
-## 🌟 Background & Inspiration (Caso de Uso Real)
-
-Este proyecto nació de la experiencia operativa real en la gestión de estacionamientos de alto tránsito (Sede: *La Rambla Brasil*).
-
-A diferencia de los sistemas de parking convencionales, **CyclePark** integra un motor de impresión personalizado para resolver la problemática de **Ingreso Rápido, Custodia y Auditoría**:
-
-* **Ingreso Veloz (Fast-Track):** Emisión instantánea de tickets físicos con códigos correlativos únicos.
-* **Seguridad Patrimonial:** Validación visual (Foto/Cámara) para evitar suplantación de identidad al momento del retiro.
-* **Cumplimiento Legal:** Protocolos alineados a la **Ley N° 29733** para el manejo formal de tickets perdidos.
+**CyclePark** es una aplicación web diseñada para la gestión operativa, emisión de tickets térmicos y control de seguridad física en estacionamientos de vehículos menores. Digitaliza el flujo completo de ingreso, custodia, cierre de caja y auditoría bajo una arquitectura en 3 capas, garantizando trazabilidad en cada transacción y cumplimiento de protocolos legales de custodia.
 
 ---
 
-## 📸 Galería de la Interfaz (Screenshots)
+## Contexto Operativo
 
-### 🔐 Seguridad y Continuidad
-| Acceso Seguro (Login) | Sesión Bloqueada (Lock) | Gestión de Usuarios (RBAC) |
-|:---------------------:|:--------------------------:|:--------------------------:|
-| ![Login](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/73f48f55968cbe803cac92b064eaefad985d28ed/public/assets/login.jpg) | ![Sesion_Bloqueada](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/60e5b791ed632d27ff02d654542eb218d705d05b/public/assets/sesion-bloqueada.jpg) | ![Usuarios](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/73f48f55968cbe803cac92b064eaefad985d28ed/public/assets/gesti%C3%B3n-usuarios.jpg) |
-| *Inicio de sesión con validación de credenciales* | *Protección de contexto de turno y bloqueo de UI* | *Panel exclusivo para **Administradores*** |
+El sistema fue concebido a partir de necesidades reales en la operación de estacionamientos de alto tránsito (referencia operativa: sede *La Rambla Brasil*), resolviendo tres cuellos de botella críticos:
 
-### 📄 Emisión de Tickets y Control Operativo
-| Panel de Control (Dashboard) | Ticket Térmico (POS) | Protocolo de Anulación |
-|:----------------------------:|:--------------------:|:----------------------:|
-| ![Dashboard](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/54d8917e8462e1994054852bf858de97fa5d93dc/public/assets/dashboard-principal.jpg) | ![Ticket_Ejemplo](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/7851b50d7a1706faa9c3185590798e7be592b676/public/assets/ticket-parking.jpg) | ![Protocolo_Anulacion](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/60e5b791ed632d27ff02d654542eb218d705d05b/public/assets/protocolo-de-anulacion.jpg) |
-| *Registro de ingresos y aforo en tiempo real* | *Generación dinámica PDF (80mm) con normativa legal* | *Verificación administrativa híbrida* |
-
-### 🚨 Auditoría y Legalidad
-| Acta de Pérdida de Ticket | Reportes Corporativos (PDF) | Exportación de Datos (Excel) |
-|:-------------------------:|:---------------------------:|:----------------------------:|
-| ![Acta_Perdida](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/73f48f55968cbe803cac92b064eaefad985d28ed/public/assets/acta-de-perdida-de-ticket.jpg) | ![Corte_X](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/73f48f55968cbe803cac92b064eaefad985d28ed/public/assets/corte-x.jpg) | ![Excel](https://github.com/wilberbecerra/cycle-parking-inventory-system/blob/73f48f55968cbe803cac92b064eaefad985d28ed/public/assets/excel.png) |
-| *Captura de evidencia fotográfica (Ley 29733)* | *Cortes X/Z generados con diseño empresarial* | *Tablas estilizadas para auditoría financiera* |
-
-*(Nota: Las imágenes representan el flujo real de trabajo en la sede La Rambla Brasil)*
----
-
-## 🚀 Key Features | Funcionalidades Clave
-
-* **Emisión Térmica Inteligente:** Motor de impresión personalizado que genera tickets PDF optimizados para impresoras térmicas (80mm), ajustando dinámicamente la longitud del papel según la normativa legal vigente.
-* **Verificación de Seguridad Híbrida:** Algoritmo de validación que permite la convivencia de credenciales legacy y encriptación **Bcrypt**, facilitando la transición de seguridad sin interrumpir la operación.
-* **Continuidad de Turno:** Mecanismo de persistencia que protege la integridad de los datos del turno ante bloqueos de pantalla o recargas accidentales.
-* **Protocolo Legal de Seguridad:** Módulo de "Pérdida de Ticket" con integración de Webcam para captura de evidencia y generación de actas legales.
-* **Reportes de Auditoría Automatizados:** Generación automática de reportes financieros (Corte X/Z) en PDF y Excel al finalizar el turno.
----
-
-## 🛠️ Tech Stack | Tecnologías
-
-* **Backend:** Node.js & Express.
-* **Database:** Microsoft SQL Server (Transact-SQL).
-* **Frontend:** HTML5, CSS3 (Modern Flexbox/Grid), Vanilla JavaScript (ES6+).
-* **Architecture:** MVC (Model-View-Controller) / 3-Capas.
-* **Librerías Clave:**
-    * `jspdf` & `jspdf-autotable` (Generación de PDF).
-    * `xlsx-js-style` (Reportes Excel con estilos).
-    * `mssql` (Driver SQL Server).
-    * `bcryptjs` (Seguridad y Hashing).
+*   **Ingreso de alta velocidad (Fast-Track):** Registro ágil y emisión inmediata de tickets físicos con numeración correlativa única.
+*   **Control patrimonial:** Validación visual mediante captura fotográfica por cámara web para mitigar riesgos de suplantación al momento del retiro.
+*   **Cumplimiento normativo:** Protocolo formal de emisión de actas ante pérdida de ticket alineado a la **Ley N° 29733** (Ley de Protección de Datos Personales).
 
 ---
 
-## 📂 Estructura del Proyecto
+## Funcionalidades Principales
 
-El proyecto sigue una arquitectura organizada para separar el **Frontend** (Interfaz) del **Backend** (Lógica de Negocio/API):
+*   **Motor de Impresión Térmica (80 mm):** Generación dinámica de comprobantes en PDF optimizados para impresoras POS, ajustando el alto del documento según el contenido y las cláusulas legales.
+*   **Autenticación y Control de Acceso (RBAC):** Gestión diferenciada por roles (operador y administrador), protección de credenciales con **Bcrypt** y soporte de compatibilidad controlada para migración progresiva desde credenciales heredadas sin detener la operación.
+*   **Continuidad de Turno:** Bloqueo de interfaz y persistencia del estado operativo para proteger la sesión del cajero ante pausas o recargas accidentales.
+*   **Anulación y Auditoría:** Protocolo de anulación con verificación administrativa, captura de evidencia fotográfica para incidencias y registro de eventos.
+*   **Reportes Financieros Automatizados:** Generación de cierres de caja (**Corte X / Corte Z**) en formato PDF corporativo y exportación de tablas estilizadas a Excel para auditoría.
+
+---
+
+## Stack Tecnológico
+
+| Capa | Tecnologías y Librerías |
+| :--- | :--- |
+| **Backend** | Node.js (v18+), Express |
+| **Base de Datos** | Microsoft SQL Server (Transact-SQL), driver `mssql` |
+| **Frontend** | HTML5, CSS3 (Flexbox / Grid), JavaScript ES6+ (Vanilla) |
+| **Arquitectura** | Patrón MVC / 3 Capas (Presentación, Lógica de Negocio/API, Datos) |
+| **Seguridad** | `bcryptjs` (hashing de contraseñas), control de acceso por roles (RBAC) |
+| **Reportería y Documentos** | `jspdf`, `jspdf-autotable` (PDF y tickets térmicos), `xlsx-js-style` (Excel) |
+
+---
+
+## Capturas del Sistema
+
+### Seguridad y Control de Acceso
+
+| Inicio de Sesión | Bloqueo de Turno | Gestión de Usuarios (RBAC) |
+| :---: | :---: | :---: |
+| ![Login](./public/assets/login.jpg) | ![Sesión Bloqueada](./public/assets/sesion-bloqueada.jpg) | ![Gestión de Usuarios](./public/assets/gesti%C3%B3n-usuarios.jpg) |
+| *Validación de credenciales por rol* | *Bloqueo de interfaz con persistencia de turno* | *Módulo exclusivo de administración* |
+
+### Operación Diaria y Emisión POS
+
+| Panel Principal | Ticket Térmico (80 mm) | Protocolo de Anulación |
+| :---: | :---: | :---: |
+| ![Dashboard](./public/assets/dashboard-principal.jpg) | ![Ticket POS](./public/assets/ticket-parking.jpg) | ![Protocolo de Anulación](./public/assets/protocolo-de-anulacion.jpg) |
+| *Control de ingresos y aforo en tiempo real* | *Generación dinámica en PDF con cláusulas legales* | *Flujo de validación administrativa* |
+
+### Auditoría y Reportería
+
+| Acta de Pérdida de Ticket | Cierre de Caja (PDF) | Exportación Financiera (Excel) |
+| :---: | :---: | :---: |
+| ![Acta de Pérdida](./public/assets/acta-de-perdida-de-ticket.jpg) | ![Corte X](./public/assets/corte-x.jpg) | ![Reporte Excel](./public/assets/excel.png) |
+| *Captura fotográfica y acta formal (Ley N° 29733)* | *Reportes operativos Corte X / Z* | *Exportación estructurada para auditoría* |
+
+> **Nota:** Las capturas reflejan el flujo operativo real modelado para la gestión de estacionamientos en la sede *La Rambla Brasil*.
+
+---
+
+## Estructura del Proyecto
 
 ```text
-├── public/                 # Capa de Presentación (Frontend)
-│   ├── assets/             # Recursos gráficos (Logos, Capturas, Evidencias)
-│   ├── css/                # Estilos visuales (Responsive Design)
-│   ├── js/                 # Lógica del cliente (Fetch API, DOM)
-│   └── views/              # Vistas HTML (Login y Dashboard)
+cycle-parking-system/
+├── public/                     # Capa de Presentación (Frontend)
+│   ├── assets/                 # Logos, capturas y recursos estáticos
+│   ├── css/                    # Hojas de estilo responsivas
+│   ├── js/                     # Lógica de cliente (Fetch API, manipulación DOM)
+│   └── views/                  # Vistas HTML (Login, Dashboard y módulos)
 │
-├── src/                    # Lógica del Servidor (Backend)
-│   ├── config/             # Conexión a Base de Datos (SQL Server)
-│   ├── routes/             # API Endpoints (Rutas del Sistema)
-│   │   ├── auth.routes.js    # Autenticación y Seguridad
-│   │   ├── client.routes.js  # Gestión de Clientes
-│   │   └── ticket.routes.js  # Operativa de Parqueo (Ingreso/Salida)
-│   └── index.js            # Punto de entrada del servidor Express
+├── src/                        # Capa de Lógica de Negocio y Datos (Backend)
+│   ├── config/                 # Configuración y pool de conexión a SQL Server
+│   ├── routes/                 # Definición de endpoints REST
+│   │   ├── auth.routes.js      # Autenticación, sesiones y usuarios
+│   │   ├── client.routes.js    # Registro y consulta de clientes
+│   │   └── ticket.routes.js    # Ingresos, salidas, anulaciones y reportes
+│   └── index.js                # Punto de entrada del servidor Express
 │
-├── .env                    # Variables de Entorno (Credenciales BD)
-└── package.json            # Dependencias y Scripts de arranque
+├── .env                        # Variables de entorno (no versionado)
+└── package.json                # Dependencias y scripts de ejecución
