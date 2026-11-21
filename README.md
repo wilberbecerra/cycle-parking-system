@@ -6,7 +6,7 @@
   </picture>
 </p>
 
-# CyclePark — Sistema de Control de Acceso e Inventario de Tickets
+<h1 align="center">Sistema de Control de Acceso e Inventario de Tickets</h1>
 
 ![Estado](https://img.shields.io/badge/Estado-Completado-1f883d?style=flat-square)
 ![Node.js](https://img.shields.io/badge/Node.js-v18%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white)
