@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const sql = require('mssql');
+
 const bcrypt = require('bcryptjs'); 
-const { getConnection } = require('../config/db');
+const { getConnection, sql } = require('../config/db');
 
 
 router.post('/login', async (req, res) => {
@@ -11,7 +11,7 @@ router.post('/login', async (req, res) => {
         const pool = await getConnection();
         const result = await pool.request()
             .input('u', sql.VarChar, username)
-            .query('SELECT NOMBRE_EMPLEADO, ROL, PASSWORD_HASH FROM PRK_USUARIOS WHERE USERNAME = @u');
+            .query('SELECT ID_USUARIO, NOMBRE_EMPLEADO, ROL, PASSWORD_HASH FROM PRK_USUARIOS WHERE USERNAME = @u');
         
         if (result.recordset.length === 0) return res.status(401).send("Usuario no encontrado");
 
@@ -23,7 +23,7 @@ router.post('/login', async (req, res) => {
         }
 
         if (matchPlano || matchHash) {
-            res.json({ mensaje: "OK", usuario: { NOMBRE_EMPLEADO: usuario.NOMBRE_EMPLEADO, ROL: usuario.ROL } });
+            res.json({ mensaje: "OK", usuario: { ID_USUARIO: usuario.ID_USUARIO, NOMBRE_EMPLEADO: usuario.NOMBRE_EMPLEADO, ROL: usuario.ROL } });
         } else {
             res.status(401).send("Contraseña incorrecta");
         }

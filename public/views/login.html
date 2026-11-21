@@ -1,226 +1,177 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Acceso - Parking Login</title>
-    <link rel="stylesheet" href="../css/styles.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/assets/cyclepark-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <title>Acceso · CyclePark</title>
+    <script defer src="/js/login.js"></script>
   </head>
-  <body>
-    <div class="login-container">
-      <div id="login-card" class="login-card">
-        <div class="login-header">
-          <img src="../assets/logo-login.png" alt="Logo" class="logo" />
-          <h2>Bienvenido</h2>
-          <p>Ingrese sus credenciales</p>
-        </div>
-        <form id="login-form">
-          <div class="input-group">
-            <label>Usuario</label>
-            <input
-              type="text"
-              id="username"
-              placeholder="ej. admin_temporal"
-              required
-            />
-          </div>
-          <div class="input-group">
-            <label>Contraseña</label>
-            <input
-              type="password"
-              id="password"
-              placeholder="••••••"
-              required
-            />
-          </div>
-          <button type="submit" class="btn-login">Ingresar</button>
-        </form>
-      </div>
-
-     <div
-        id="unlock-card"
-        class="login-card"
-        style="display: none; text-align: center"
-      >
-        <div class="login-header" style="display: flex; flex-direction: column; align-items: center;">
-          <div style="font-size: 3rem; margin-bottom: 10px">🔐</div>
-          <h3 style="color: #334155; margin: 0; text-align: center">Sesión Bloqueada</h3>
-          <p style="text-align: center">Ingrese su contraseña para continuar</p>
-        </div>
-
-        <div
-          style="
-            background: #f1f5f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border: 1px solid #cbd5e1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-          "
-        >
-          <small
-            style="color: #64748b; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;"
-            >Usuario Activo</small
-          >
-          <h3 id="locked-user-name" style="margin: 8px auto; color: #0f172a; width: 100%; text-align: center; display: block;">
-            ...
-          </h3>
-          <div style="background: #e2e8f0; padding: 2px 10px; border-radius: 12px;">
-             <small id="locked-user-username" style="color: #475569; font-family: monospace; font-size: 0.9rem;">...</small>
+  <body class="login-page">
+    <main class="access-layout">
+      <aside class="access-story">
+        <img
+          class="wordmark"
+          src="/assets/cyclepark-white.svg"
+          alt="CyclePark"
+          width="200"
+          height="40"
+        />
+        <div class="access-message">
+          <span class="access-label">Gestión de estacionamientos</span>
+          <h1>Cada ingreso,<br />bajo control.</h1>
+          <p>
+            Una operación organizada, desde el primer ticket hasta el cierre de
+            turno.
+          </p>
+          <div class="parking-visual" aria-hidden="true">
+            <div class="parking-slot">
+              <svg class="icon" aria-hidden="true">
+                <use href="/assets/cyclepark-icons.svg#bike"></use>
+              </svg>
+            </div>
+            <div class="parking-slot">
+              <svg class="icon" aria-hidden="true">
+                <use href="/assets/cyclepark-icons.svg#scooter"></use>
+              </svg>
+            </div>
+            <div class="parking-slot">
+              <svg class="icon" aria-hidden="true">
+                <use href="/assets/cyclepark-icons.svg#bike"></use>
+              </svg>
+            </div>
+            <span class="parking-line"></span>
           </div>
         </div>
-
-        <form id="unlock-form">
-          <div class="input-group" style="text-align: left">
-            <label>Contraseña</label>
-            <input
-              type="password"
-              id="unlock-password"
-              placeholder="••••••"
-              required
-              autofocus
-            />
+        <div class="access-footer">
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/cyclepark-icons.svg#shield"></use></svg
+          ><span>Acceso, custodia y trazabilidad.</span>
+        </div>
+      </aside>
+      <section class="access-form-section">
+        <div class="mobile-brand">
+          <img
+            class="wordmark"
+            src="/assets/cyclepark.svg"
+            alt="CyclePark"
+            width="200"
+            height="40"
+          />
+        </div>
+        <div id="login-card" class="login-card">
+          <div class="login-header">
+            <span class="subtle-label">Tu espacio de trabajo</span>
+            <h2>Iniciar sesión</h2>
+            <p>Ingresa a tu cuenta para continuar con la operación.</p>
           </div>
+          <div
+            id="login-error"
+            class="form-message error"
+            role="alert"
+            hidden
+          ></div>
+          <form id="login-form">
+            <div class="input-group">
+              <label for="username">Usuario</label
+              ><input
+                id="username"
+                type="text"
+                autocomplete="username"
+                placeholder="Tu nombre de usuario"
+                required
+              />
+            </div>
+            <div class="input-group">
+              <label for="password">Contraseña</label>
+              <div class="password-field">
+                <input
+                  id="password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="Tu contraseña"
+                  required
+                /><button
+                  type="button"
+                  class="password-toggle"
+                  data-password="password"
+                  aria-pressed="false"
+                >
+                  Mostrar
+                </button>
+              </div>
+            </div>
+            <button class="btn-primary" type="submit">Ingresar</button>
+          </form>
+          <p class="access-help">
+            Acceso para personal autorizado.<br />¿Necesitas una cuenta?
+            Comunícate con tu administrador.
+          </p>
+        </div>
+        <div id="unlock-card" class="login-card" style="display: none">
+          <div class="lock-emblem">
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/cyclepark-icons.svg#lock"></use>
+            </svg>
+          </div>
+          <div class="login-header">
+            <h2>Turno en pausa</h2>
+            <p>
+              Tu operación sigue en su lugar.<br />Ingresa tu contraseña para
+              continuar.
+            </p>
+          </div>
+          <div class="locked-identity">
+            <span class="user-avatar"
+              ><svg class="icon" aria-hidden="true">
+                <use href="/assets/cyclepark-icons.svg#users"></use></svg
+            ></span>
+            <div>
+              <strong id="locked-user-name"></strong
+              ><span id="locked-user-username"></span>
+            </div>
+            <span class="badge badge-paused">Bloqueado</span>
+          </div>
+          <div
+            id="unlock-error"
+            class="form-message error"
+            role="alert"
+            hidden
+          ></div>
+          <form id="unlock-form">
+            <div class="input-group">
+              <label for="unlock-password">Contraseña</label>
+              <div class="password-field">
+                <input
+                  id="unlock-password"
+                  type="password"
+                  autocomplete="current-password"
+                  placeholder="Tu contraseña"
+                  required
+                /><button
+                  type="button"
+                  class="password-toggle"
+                  data-password="unlock-password"
+                  aria-pressed="false"
+                >
+                  Mostrar
+                </button>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary">Desbloquear turno</button>
+          </form>
           <button
-            type="submit"
-            class="btn-login"
-            style="background-color: #f59e0b"
+            class="text-button access-switch"
+            onclick="cerrarSesionCompleta()"
           >
-            🔓 Desbloquear
+            Cerrar turno y cambiar de usuario
           </button>
-        </form>
-
-        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0" />
-
-        <button
-          onclick="cerrarSesionCompleta()"
-          style="
-            background: none;
-            border: none;
-            color: #ef4444;
-            font-size: 0.9rem;
-            cursor: pointer;
-            text-decoration: underline;
-          "
-        >
-          No soy este usuario (Cerrar Sesión)
-        </button>
-      </div>
-
-        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #e2e8f0" />
-
-        <button
-          onclick="cerrarSesionCompleta()"
-          style="
-            background: none;
-            border: none;
-            color: #ef4444;
-            font-size: 0.9rem;
-            cursor: pointer;
-            text-decoration: underline;
-          "
-        >
-        </button>
-      </div>
-    </div>
-
-    <script>
-      const API_URL = "http://127.0.0.1:3000/api/auth/login";
-
-
-      document.addEventListener("DOMContentLoaded", () => {
-        const isLocked = localStorage.getItem("sesionBloqueada") === "true";
-        const nombre = localStorage.getItem("usuarioNombre");
-        const username = localStorage.getItem("usuarioUser");
-
-        if (isLocked && nombre && username) {
-          mostrarDesbloqueo(nombre, username);
-        } else {
-          localStorage.removeItem("sesionBloqueada");
-          document.getElementById("login-card").style.display = "block";
-          document.getElementById("unlock-card").style.display = "none";
-        }
-      });
-
-      function mostrarDesbloqueo(nombre, username) {
-        document.getElementById("login-card").style.display = "none";
-        document.getElementById("unlock-card").style.display = "block";
-
-        document.getElementById("locked-user-name").innerText = nombre;
-        document.getElementById("locked-user-username").innerText = username;
-
-        setTimeout(
-          () => document.getElementById("unlock-password").focus(),
-          100,
-        );
-      }
-
-      function cerrarSesionCompleta() {
-    if (confirm("⚠️ ¿Desea realizar el CORTE X (Reporte de Turno) antes de cambiar de usuario?")) {
-
-        window.location.href = "dashboard.html?forceCorteX=true";
-    }
-}
-
-      document
-        .getElementById("login-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const u = document.getElementById("username").value;
-          const p = document.getElementById("password").value;
-          await autenticar(u, p, false);
-        });
-
-      document
-        .getElementById("unlock-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const u = localStorage.getItem("usuarioUser");
-          const p = document.getElementById("unlock-password").value;
-          await autenticar(u, p, true);
-        });
-
-      async function autenticar(username, password, esDesbloqueo) {
-        try {
-          const res = await fetch(API_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password }),
-          });
-
-          const data = await res.json();
-
-          if (res.ok) {
-            const u = data.usuario;
-
-            localStorage.setItem("usuarioId", u.id || u.ID_USUARIO);
-            localStorage.setItem(
-              "usuarioNombre",
-              u.nombre || u.NOMBRE_EMPLEADO,
-            );
-            localStorage.setItem("usuarioUser", username);
-            localStorage.setItem("usuarioRol", u.rol || u.ROL);
-
-            if (!esDesbloqueo) {
-              localStorage.setItem("inicioTurno", new Date().toISOString());
-            }
-
-            localStorage.removeItem("sesionBloqueada");
-
-            window.location.href = "dashboard.html";
-          } else {
-            alert("❌ Contraseña incorrecta");
-            if (esDesbloqueo)
-              document.getElementById("unlock-password").value = "";
-          }
-        } catch (error) {
-          console.error(error);
-          alert("❌ Error de conexión");
-        }
-      }
-    </script>
+        </div>
+        <div class="access-bottom">
+          <span>CyclePark</span><span>Control de acceso y tickets</span>
+        </div>
+      </section>
+    </main>
   </body>
 </html>

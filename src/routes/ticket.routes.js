@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const sql = require('mssql');
-const { getConnection } = require('../config/db');
+
+const { getConnection, sql } = require('../config/db');
 const bcrypt = require('bcryptjs');
 
 
@@ -109,7 +109,12 @@ router.put('/perdida/:id', async (req, res) => {
 
             .query(`UPDATE PRK_TICKETS SET
         ESTADO = 'Perdido',
-        ...
+        FOTO_DNI_BASE64 = @fd,
+        FOTO_ROSTRO_BASE64 = @fr,
+        TEL_CONTACTO = @tel,
+        DIR_CONTACTO = @dir,
+        CORREO_CONTACTO = @mail,
+        FECHA_ACTA_PERDIDA = GETDATE(),
         FECHA_SALIDA = GETUTCDATE(),
         HORA_SALIDA = GETUTCDATE()
         WHERE ID_TICKET = @id`);

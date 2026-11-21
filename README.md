@@ -48,24 +48,24 @@ El sistema fue concebido a partir de necesidades reales en la operación de esta
 
 | Inicio de Sesión | Bloqueo de Turno | Gestión de Usuarios (RBAC) |
 | :---: | :---: | :---: |
-| ![Login](./public/assets/login.jpg) | ![Sesión Bloqueada](./public/assets/sesion-bloqueada.jpg) | ![Gestión de Usuarios](./public/assets/gesti%C3%B3n-usuarios.jpg) |
+| ![Login](./public/assets/capturas/login.png) | ![Sesión Bloqueada](./public/assets/capturas/sesion-bloqueada.png) | ![Gestión de Usuarios](./public/assets/capturas/usuarios.png) |
 | *Validación de credenciales por rol* | *Bloqueo de interfaz con persistencia de turno* | *Módulo exclusivo de administración* |
 
 ### Operación Diaria y Emisión POS
 
 | Panel Principal | Ticket Térmico (80 mm) | Protocolo de Anulación |
 | :---: | :---: | :---: |
-| ![Dashboard](./public/assets/dashboard-principal.jpg) | ![Ticket POS](./public/assets/ticket-parking.jpg) | ![Protocolo de Anulación](./public/assets/protocolo-de-anulacion.jpg) |
+| ![Dashboard](./public/assets/capturas/dashboard.png) | ![Ticket POS](./public/assets/ticket-parking.jpg) | ![Protocolo de Anulación](./public/assets/capturas/anulacion.png) |
 | *Control de ingresos y aforo en tiempo real* | *Generación dinámica en PDF con cláusulas legales* | *Flujo de validación administrativa* |
 
 ### Auditoría y Reportería
 
 | Acta de Pérdida de Ticket | Cierre de Caja (PDF) | Exportación Financiera (Excel) |
 | :---: | :---: | :---: |
-| ![Acta de Pérdida](./public/assets/acta-de-perdida-de-ticket.jpg) | ![Corte X](./public/assets/corte-x.jpg) | ![Reporte Excel](./public/assets/excel.png) |
+| ![Acta de Pérdida](./public/assets/capturas/perdida.png) | ![Corte X](./public/assets/corte-x.jpg) | ![Reporte Excel](./public/assets/excel.png) |
 | *Captura fotográfica y acta formal (Ley N° 29733)* | *Reportes operativos Corte X / Z* | *Exportación estructurada para auditoría* |
 
-> **Nota:** Las capturas reflejan el flujo operativo real modelado para la gestión de estacionamientos en la sede *La Rambla Brasil*.
+> **Nota:** Las capturas reflejan el flujo operativo de la sede *La Rambla Brasil*. Los datos personales de las vistas de interfaz están anonimizados para su publicación.
 
 ---
 
@@ -106,7 +106,7 @@ cycle-parking-system/
 1. **Clonar el repositorio:**
 
 ```bash
-git clone [https://github.com/wilberbecerra/cycle-parking-system.git](https://github.com/wilberbecerra/cycle-parking-system.git)
+git clone https://github.com/wilberbecerra/cycle-parking-system.git
 cd cycle-parking-system
 ```
 
@@ -125,12 +125,27 @@ PORT=3000
 DB_USER=tu_usuario
 DB_PASSWORD=tu_password
 DB_SERVER=localhost
-DB_PORT=1433
-DB_DATABASE=CycleParkDB
+DB_PORT=1435
+DB_DATABASE=DB_ParkingControl
 ```
+
+En Windows también puedes usar tu identidad de Windows existente con `DB_TRUSTED_CONNECTION=true`, ODBC Driver 17 y el controlador opcional `msnodesqlv8` instalado (Node.js 22 o superior para ese modo). No requiere crear un login SQL ni guardar una contraseña de conexión.
+
+La consulta externa de identidad es opcional: configura `IDENTITY_API_TOKEN` únicamente en tu archivo `.env`. Si no está configurada, se consultan los clientes locales y el nombre puede completarse manualmente.
 
 4. **Iniciar el servidor:**
 
 ```bash
 npm start
 ```
+
+
+Abre [CyclePark](http://localhost:3000/). Los accesos existentes se conservan; no se crean ni restablecen usuarios automáticamente.
+
+### Verificación
+
+```bash
+npm test
+```
+
+Las pruebas utilizan un repositorio simulado y credenciales exclusivas de prueba. No modifican la base de datos operativa. Se verifican vistas y recursos, autenticación, identificadores de usuario, consultas, incidencias y escape de datos al generar HTML. PDF y Excel se generan en el navegador con sus librerías locales.

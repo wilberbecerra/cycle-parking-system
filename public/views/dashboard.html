@@ -1,216 +1,321 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Panel Operativo</title>
-    <link rel="stylesheet" href="../css/styles.css" />
-    <style>
-      .badge {
-        padding: 5px 10px;
-        border-radius: 15px;
-        font-size: 0.7rem;
-        font-weight: 800;
-        color: white;
-        text-transform: uppercase;
-      }
-      .badge-activo {
-        background-color: #10b981;
-      }
-      .badge-finalizado {
-        background-color: #3b82f6;
-      }
-      .badge-perdido {
-        background-color: #ef4444;
-      }
-
-      .btn-action {
-        border: none;
-        padding: 6px 10px;
-        border-radius: 6px;
-        cursor: pointer;
-        margin-right: 4px;
-        color: white;
-        font-size: 1rem;
-      }
-      .btn-edit {
-        background-color: #0ea5e9;
-      }
-      .btn-out {
-        background-color: #f59e0b;
-      }
-      .btn-loss {
-        background-color: #ef4444;
-      }
-
-      .camera-container {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-      }
-      .video-box {
-        width: 50%;
-        background: #000;
-        border-radius: 8px;
-        overflow: hidden;
-        position: relative;
-        height: 200px;
-      }
-      .video-box video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      .photo-preview {
-        width: 50%;
-        background: #f1f5f9;
-        border-radius: 8px;
-        height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px dashed #cbd5e1;
-      }
-      .photo-preview img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 8px;
-      }
-    </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/assets/cyclepark-mark.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/css/styles.css" />
+    <title>Control de acceso · CyclePark</title>
   </head>
-  <body>
-    <header>
-      <div class="header-logo-section">
-        <img src="../assets/logo-login.png" alt="Logo" class="header-logo" />
-        <div class="header-title">🚲 <strong>Parking Control</strong></div>
-      </div>
-      <div class="header-tools">
-        <span id="nombre-usuario" style="color: white; font-weight: bold; margin-right: 15px;"></span>
-        <button
-          id="btn-admin-usuarios"
-          onclick="abrirModalUsuarios()"
-          style="background: #8b5cf6; display: none"
-        >
-          👥 Usuarios
-        </button>
-        <button onclick="abrirHistorial()" style="background: #64748b">
-          📜 Historial Turno
-        </button>
-        <button onclick="ejecutarCorte('X')" style="background: var(--info)">
-          Corte X
-        </button>
-        <button
-          onclick="ejecutarCorte('Z')"
-          style="background: var(--primary); border: 1px solid white"
-        >
-          Corte Z
-        <button onclick="bloquearSesion()" style="background: #f59e0b; border: 1px solid white;">
-          🔒 Bloquear Sesión
-        </button>
-      </div>
-    </header>
-
-    <main>
-      <section id="registro-ingreso">
-        <h3>📝 Registro de Ingreso</h3>
-        <div class="form-grid">
-          <div class="input-group">
-            <label>Documento</label>
-            <div style="display: flex; gap: 10px">
-              <select id="tipo-doc" style="width: 90px">
-                <option value="DNI">DNI</option>
-                <option value="CE">CE</option>
-              </select>
-              <input type="text" id="documento-input" placeholder="Número" />
+  <body class="dashboard-page">
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <a href="/views/dashboard.html" class="sidebar-brand"
+          ><img
+            class="wordmark"
+            src="/assets/cyclepark-white.svg"
+            alt="CyclePark"
+            width="200"
+            height="40"
+        /></a>
+        <div class="workspace-location">
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/cyclepark-icons.svg#pin"></use>
+          </svg>
+          <div>
+            <strong>La Rambla Brasil</strong><span>Estacionamiento</span>
+          </div>
+        </div>
+        <nav aria-label="Operación">
+          <a href="#registro-ingreso" class="nav-item active"
+            ><svg class="icon" aria-hidden="true">
+              <use href="/assets/cyclepark-icons.svg#grid"></use></svg
+            ><span>Control de acceso</span></a
+          ><button class="nav-item" onclick="abrirHistorial()">
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/cyclepark-icons.svg#history"></use></svg
+            ><span>Historial de turno</span></button
+          ><button
+            class="nav-item"
+            id="btn-admin-usuarios"
+            onclick="abrirModalUsuarios()"
+            style="display: none"
+          >
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/cyclepark-icons.svg#users"></use></svg
+            ><span>Usuarios</span>
+          </button>
+          <div class="nav-label">Cortes y reportes</div>
+          <button class="nav-item" onclick="solicitarCorte('X')">
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/cyclepark-icons.svg#report"></use></svg
+            ><span>Corte parcial X</span></button
+          ><button class="nav-item" onclick="solicitarCorte('Z')">
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/cyclepark-icons.svg#report"></use></svg
+            ><span>Cierre de jornada Z</span>
+          </button>
+        </nav>
+        <div class="sidebar-bottom">
+          <div class="shift-indicator">
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/cyclepark-icons.svg#clock"></use>
+            </svg>
+            <div>
+              <span>Inicio de turno</span><strong id="shift-start">—</strong>
             </div>
           </div>
-          <div class="input-group">
-            <label>Nombre Cliente</label
-            ><input type="text" id="nombre-cliente" />
-          </div>
-          <div class="input-group">
-            <label>Tipo Vehículo</label
-            ><input list="v-list" id="tipo-vehiculo" />
-          </div>
-          <div class="input-group">
-            <label>Marca</label><input type="text" id="marca" />
-          </div>
-          <div class="input-group">
-            <label>Color</label><input type="text" id="color" />
-          </div>
-          <div class="input-group full-width">
-            <label>Observaciones</label
-            ><textarea id="observaciones" rows="3"></textarea>
-          </div>
+          <button class="nav-item" onclick="bloquearSesion()">
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/cyclepark-icons.svg#lock"></use></svg
+            ><span>Bloquear sesión</span></button
+          ><span class="sidebar-caption">Control de acceso y tickets</span>
         </div>
-        <button onclick="guardarTicket()" class="btn-primary">
-          GENERAR TICKET
-        </button>
-      </section>
-
-      <section>
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-          "
-        >
-          <h3 style="margin: 0">🚲 Operación Diaria (Activos)</h3>
-          <input
-            type="text"
-            id="buscador-principal"
-            placeholder="🔍 Buscar..."
-            autocomplete="off"
-            readonly
-            onfocus="this.removeAttribute('readonly')"
-            oninput="filtrarTabla()"
-            style="
-              width: 300px;
-              padding: 8px;
-              border: 1px solid #cbd5e1;
-              border-radius: 6px;
-            "
-          />
-        </div>
-        <div style="overflow-x: auto">
-          <table>
-            <thead>
-              <tr>
-                <th>Código</th>
-                <th>Cliente</th>
-                <th>Hora Ingreso</th>
-                <th>Vehículo</th>
-                <th>Marca/Color</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tickets-body"></tbody>
-          </table>
-        </div>
-      </section>
-    </main>
-
+      </aside>
+      <div class="main-layout">
+        <header class="topbar">
+          <span class="topbar-context"
+            >Operación diaria <span>/</span> Control de acceso</span
+          >
+          <div class="topbar-account">
+            <div class="account-details">
+              <strong id="nombre-usuario">Operador</strong
+              ><span id="user-role">Personal autorizado</span>
+            </div>
+            <span class="user-avatar"
+              ><svg class="icon" aria-hidden="true">
+                <use href="/assets/cyclepark-icons.svg#users"></use></svg></span
+            ><button
+              class="icon-button"
+              onclick="bloquearSesion()"
+              aria-label="Bloquear sesión"
+              title="Bloquear sesión"
+            >
+              <svg class="icon" aria-hidden="true">
+                <use href="/assets/cyclepark-icons.svg#lock"></use>
+              </svg>
+            </button>
+          </div>
+        </header>
+        <main id="contenido" class="workspace">
+          <div class="page-heading">
+            <div>
+              <h1>Control de estacionamiento</h1>
+              <p>Organiza los ingresos y los vehículos bajo custodia.</p>
+            </div>
+            <div class="current-date" id="current-date"></div>
+          </div>
+          <div class="stats-grid">
+            <article class="stat">
+              <span>En custodia</span>
+              <div>
+                <strong id="stat-active">—</strong
+                ><span class="stat-description">vehículos activos</span>
+              </div>
+            </article>
+            <article class="stat">
+              <span>Bicicletas</span>
+              <div>
+                <strong id="stat-bikes">—</strong
+                ><span class="stat-description">en estacionamiento</span>
+              </div>
+            </article>
+            <article class="stat">
+              <span>Scooters</span>
+              <div>
+                <strong id="stat-scooters">—</strong
+                ><span class="stat-description">en estacionamiento</span>
+              </div>
+            </article>
+            <article class="stat">
+              <span>Ingresos del día</span>
+              <div>
+                <strong id="stat-today">—</strong
+                ><span class="stat-description">registros de hoy</span>
+              </div>
+            </article>
+          </div>
+          <section class="panel entry-panel" id="registro-ingreso">
+            <div class="panel-heading">
+              <div class="section-icon">
+                <svg class="icon" aria-hidden="true">
+                  <use href="/assets/cyclepark-icons.svg#plus"></use>
+                </svg>
+              </div>
+              <div>
+                <h2>Registrar ingreso</h2>
+                <p>Completa los datos para emitir el ticket.</p>
+              </div>
+              <span class="panel-meta">Ticket térmico · 80 mm</span>
+            </div>
+            <form
+              id="ticket-form"
+              onsubmit="
+                event.preventDefault();
+                guardarTicket();
+              "
+            >
+              <div class="form-grid">
+                <div class="input-group">
+                  <label for="documento-input">Documento del cliente</label>
+                  <div class="document-input">
+                    <select id="tipo-doc" aria-label="Tipo de documento">
+                      <option value="DNI">DNI</option>
+                      <option value="CE">CE</option></select
+                    ><input
+                      type="text"
+                      id="documento-input"
+                      placeholder="Número de documento"
+                      maxlength="15"
+                      autocomplete="off"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="input-group">
+                  <label for="nombre-cliente">Nombre del cliente</label
+                  ><input
+                    type="text"
+                    id="nombre-cliente"
+                    placeholder="Nombre completo"
+                    required
+                    maxlength="100"
+                  />
+                </div>
+                <div class="input-group">
+                  <label for="tipo-vehiculo">Tipo de vehículo</label
+                  ><input
+                    list="v-list"
+                    id="tipo-vehiculo"
+                    value="Bicicleta"
+                    placeholder="Selecciona el vehículo"
+                  />
+                </div>
+                <div class="input-group">
+                  <label for="marca">Marca</label
+                  ><input
+                    type="text"
+                    id="marca"
+                    placeholder="Marca del vehículo"
+                    maxlength="50"
+                  />
+                </div>
+                <div class="input-group">
+                  <label for="color">Color</label
+                  ><input
+                    type="text"
+                    id="color"
+                    placeholder="Color principal"
+                    maxlength="50"
+                  />
+                </div>
+                <div class="input-group">
+                  <label for="observaciones"
+                    >Observaciones
+                    <span class="optional">(opcional)</span></label
+                  ><input
+                    type="text"
+                    id="observaciones"
+                    placeholder="Señales particulares o accesorios"
+                  />
+                </div>
+              </div>
+              <div class="form-footer">
+                <span
+                  ><svg class="icon" aria-hidden="true">
+                    <use href="/assets/cyclepark-icons.svg#shield"></use></svg
+                  >Verifica los datos antes de generar el ticket.</span
+                ><button type="submit" class="btn-primary">
+                  <svg class="icon" aria-hidden="true">
+                    <use href="/assets/cyclepark-icons.svg#plus"></use></svg
+                  >Generar ticket
+                </button>
+              </div>
+            </form>
+          </section>
+          <section class="panel operations-panel">
+            <div class="panel-heading">
+              <div>
+                <h2>
+                  Vehículos en custodia
+                  <span class="count-badge" id="active-count">—</span>
+                </h2>
+                <p>Consulta el ingreso y registra cada salida.</p>
+              </div>
+              <label class="search-input"
+                ><svg class="icon" aria-hidden="true">
+                  <use href="/assets/cyclepark-icons.svg#search"></use></svg
+                ><input
+                  type="search"
+                  id="buscador-principal"
+                  aria-label="Buscar vehículo o cliente"
+                  placeholder="Buscar cliente, documento o ticket"
+                  autocomplete="off"
+                  oninput="filtrarTabla()"
+              /></label>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ticket</th>
+                    <th>Cliente / documento</th>
+                    <th>Ingreso</th>
+                    <th>Vehículo</th>
+                    <th>Marca / color</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tickets-body">
+                  <tr>
+                    <td colspan="7" class="table-state">Cargando vehículos…</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-footer">
+              <span id="table-caption">Consultando operación</span
+              ><span>Registro y trazabilidad por ticket</span>
+            </div>
+          </section>
+          <footer class="app-footer">
+            <span>CyclePark</span><span>Gestión de vehículos menores</span>
+          </footer>
+        </main>
+      </div>
+    </div>
     <datalist id="v-list">
       <option value="Bicicleta"></option>
       <option value="Scooter Eléctrico"></option>
     </datalist>
-
-    <div id="modal-editar" class="modal">
-      <div class="modal-content" style="width: 500px">
-        <h3>📝 Bitácora de Observaciones</h3>
-        <p style="font-size: 0.85rem; color: #64748b">
-          Los datos principales están bloqueados por seguridad.
-        </p>
+    <div
+      id="modal-editar"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Bitácora de observaciones"
+    >
+      <div class="modal-content">
+        <button
+          type="button"
+          class="modal-close"
+          aria-label="Cerrar ventana"
+          onclick="cerrarModal('modal-editar')"
+        >
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/cyclepark-icons.svg#close"></use>
+          </svg>
+        </button>
+        <h3>Bitácora de observaciones</h3>
+        <p>Los datos principales están bloqueados por seguridad.</p>
 
         <input type="hidden" id="edit-id-ticket" />
 
         <div class="input-group">
-          <label>Nombre Cliente</label>
-          <input
+          <label for="edit-nombre">Nombre Cliente</label
+          ><input
             type="text"
             id="edit-nombre"
             class="input-bloqueado"
@@ -218,13 +323,10 @@
           />
         </div>
 
-        <div
-          class="form-grid"
-          style="grid-template-columns: 1fr 1fr; gap: 10px"
-        >
+        <div class="form-grid">
           <div class="input-group">
-            <label>Marca</label>
-            <input
+            <label for="edit-marca">Marca</label
+            ><input
               type="text"
               id="edit-marca"
               class="input-bloqueado"
@@ -232,8 +334,8 @@
             />
           </div>
           <div class="input-group">
-            <label>Color</label>
-            <input
+            <label for="edit-color">Color</label
+            ><input
               type="text"
               id="edit-color"
               class="input-bloqueado"
@@ -243,9 +345,7 @@
         </div>
 
         <div class="input-group">
-          <label style="color: var(--primary); font-weight: bold"
-            >➕ Agregar / Editar Observaciones</label
-          >
+          <label for="anular-motivo"> Agregar / Editar Observaciones</label>
           <textarea
             id="edit-obs"
             rows="4"
@@ -253,128 +353,97 @@
           ></textarea>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 15px">
-          <button
-            onclick="guardarEdicion()"
-            class="btn-primary"
-            style="margin: 0"
-          >
-            💾 Guardar Nota
+        <div>
+          <button onclick="guardarEdicion()" class="btn-primary">
+            Guardar Nota
           </button>
-          <button
-            onclick="cerrarModal('modal-editar')"
-            style="
-              background: grey;
-              color: white;
-              border: none;
-              padding: 10px;
-              border-radius: 8px;
-              width: 100%;
-            "
-          >
-            Cerrar
-          </button>
+          <button onclick="cerrarModal('modal-editar')">Cerrar</button>
         </div>
       </div>
     </div>
 
-    <div id="modal-anulacion" class="modal">
-      <div
-        class="modal-content"
-        style="width: 500px; border-top: 5px solid #ef4444"
-      >
-        <h3 style="color: #ef4444; margin-top: 0">🚨 Protocolo de Anulación</h3>
-        <div
-          style="
-            background: #fef2f2;
-            color: #991b1b;
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-          "
+    <div
+      id="modal-anulacion"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Protocolo de anulación"
+    >
+      <div class="modal-content">
+        <button
+          type="button"
+          class="modal-close"
+          aria-label="Cerrar ventana"
+          onclick="cerrarModal('modal-anulacion')"
         >
-          ⚠️ Esta acción es irreversible. Se requiere autorización de un
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/cyclepark-icons.svg#close"></use>
+          </svg>
+        </button>
+        <h3>Protocolo de anulación</h3>
+        <div>
+          Esta acción es irreversible. Se requiere autorización de un
           Administrador.
         </div>
 
         <input type="hidden" id="anular-id-ticket" />
 
         <div class="input-group">
-          <label>Motivo de la Anulación (*)</label>
-          <textarea
+          <label>Motivo de la Anulación (*)</label
+          ><textarea
             id="anular-motivo"
             rows="3"
             placeholder="Detalle la razón (Ej: Error de digitación, Cliente se retiró sin ingresar...)"
           ></textarea>
         </div>
 
-        <hr style="border: 0.5px solid #eee; margin: 15px 0" />
+        <hr />
 
         <div class="input-group">
-          <label>👮 Contraseña de Administrador</label>
-          <input
+          <label for="anular-pass-admin"> Contraseña de Administrador</label
+          ><input
             type="password"
             id="anular-pass-admin"
             placeholder="Ingrese credencial de supervisor"
           />
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 15px">
-          <button
-            onclick="confirmarAnulacion()"
-            class="btn-primary"
-            style="background: #ef4444; margin: 0"
-          >
-            CONFIRMAR ANULACIÓN
+        <div>
+          <button onclick="confirmarAnulacion()" class="btn-primary">
+            Confirmar anulación
           </button>
-          <button
-            onclick="cerrarModal('modal-anulacion')"
-            style="
-              background: grey;
-              color: white;
-              border: none;
-              padding: 10px;
-              border-radius: 8px;
-              width: 100%;
-            "
-          >
-            Cancelar
-          </button>
+          <button onclick="cerrarModal('modal-anulacion')">Cancelar</button>
         </div>
       </div>
     </div>
 
-    <div id="modal-perdida" class="modal">
-      <div class="modal-content" style="width: 800px; max-height: 90vh">
-        <div
-          style="
-            text-align: center;
-            border-bottom: 2px solid var(--danger);
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-          "
+    <div
+      id="modal-perdida"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Acta de pérdida"
+    >
+      <div class="modal-content">
+        <button
+          type="button"
+          class="modal-close"
+          aria-label="Cerrar ventana"
+          onclick="cerrarModal('modal-perdida')"
         >
-          <h2 style="color: var(--danger); margin: 0">🚨 ACTA DE PÉRDIDA</h2>
-          <span style="color: var(--text-muted); font-size: 0.9rem"
-            >CÓDIGO: <b id="loss-codigo">...</b></span
-          >
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/cyclepark-icons.svg#close"></use>
+          </svg>
+        </button>
+        <div>
+          <h2>Acta de pérdida de ticket</h2>
+          <span>CÓDIGO: <b id="loss-codigo">...</b></span>
         </div>
 
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-          "
-        >
+        <div>
           <div>
-            <label>CLIENTE</label>
-            <div id="loss-cliente" style="font-weight: bold">...</div>
+            <label for="loss-telefono">CLIENTE</label>
+            <div id="loss-cliente">...</div>
           </div>
           <div>
             <label>DNI/CE</label>
@@ -397,124 +466,115 @@
             <div id="loss-color">...</div>
           </div>
         </div>
-        <h4
-          style="
-            margin: 15px 0 5px 0;
-            color: #334155;
-            border-bottom: 1px solid #eee;
-          "
-        >
-          📞 Datos de Contacto y Entrega
-        </h4>
-        <div
-          style="
-            display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
-          "
-        >
+        <h4>Contacto y entrega</h4>
+        <div>
           <div>
-            <label style="font-size: 0.8rem; font-weight: bold">TELÉFONO</label>
-            <input
+            <label>TELÉFONO</label
+            ><input
               type="text"
               id="loss-telefono"
               class="form-control"
               placeholder="Ej: 999..."
               autocomplete="off"
-              style="width: 100%"
             />
           </div>
           <div>
-            <label style="font-size: 0.8rem; font-weight: bold"
-              >DIRECCIÓN</label
-            >
+            <label for="loss-correo">DIRECCIÓN</label>
             <input
               type="text"
               id="loss-direccion"
               class="form-control"
               placeholder="Av. Siempre Viva 123"
               autocomplete="off"
-              style="width: 100%"
             />
           </div>
           <div>
-            <label style="font-size: 0.8rem; font-weight: bold">CORREO</label>
-            <input
+            <label>CORREO</label
+            ><input
               type="text"
               id="loss-correo"
               class="form-control"
               placeholder="correo@ejemplo.com"
               autocomplete="off"
-              style="width: 100%"
             />
           </div>
         </div>
 
-        <h4 style="margin: 15px 0 5px 0">📸 Evidencia Fotográfica</h4>
+        <h4>Evidencia fotográfica</h4>
+        <button class="btn-secondary camera-start" onclick="iniciarCamara()">
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/cyclepark-icons.svg#camera"></use></svg
+          >Activar cámara
+        </button>
         <div class="camera-container">
           <div class="video-box">
             <video id="video-feed" autoplay></video>
-            <div
-              style="
-                position: absolute;
-                bottom: 5px;
-                width: 100%;
-                display: flex;
-                justify-content: center;
-                gap: 5px;
-              "
-            >
+            <div>
               <button onclick="capturarFoto('anverso')" class="btn-cap">
-                📸 ANVERSO DNI/CE
+                Anverso del documento
               </button>
               <button onclick="capturarFoto('reverso')" class="btn-cap">
-                📸 REVERSO DNI/CE
+                Reverso del documento
               </button>
             </div>
           </div>
           <div class="photo-preview">
-            <img id="img-anverso" style="display: none" />
-            <img id="img-reverso" style="display: none" />
-            <span
-              id="placeholder-text"
-              style="color: #94a3b8; font-size: 0.8rem"
-              >Capture las evidencias</span
-            >
+            <img
+              alt="Anverso del documento capturado"
+              id="img-anverso"
+              style="display: none"
+            />
+            <img
+              alt="Reverso del documento capturado"
+              id="img-reverso"
+              style="display: none"
+            />
+            <span id="placeholder-text">Capture las evidencias</span>
           </div>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-top: 20px">
-          <button
-            onclick="generarActaSalida()"
-            class="btn-primary"
-            style="background: var(--danger); flex: 2"
-          >
-            📝 GENERAR ACTA Y SALIDA
+        <div>
+          <button onclick="generarActaSalida()" class="btn-primary">
+            Generar acta y salida
           </button>
-          <button
-            onclick="cerrarModal('modal-perdida')"
-            class="btn-primary"
-            style="background: grey; flex: 1"
-          >
-            CANCELAR
+          <button onclick="cerrarModal('modal-perdida')" class="btn-secondary">
+            Cancelar
           </button>
         </div>
         <input type="hidden" id="loss-id-ticket" />
       </div>
     </div>
 
-    <div id="modal-usuarios" class="modal">
-      <div class="modal-content" style="width: 500px">
-        <h3>👥 Gestión de Usuarios</h3>
+    <div
+      id="modal-usuarios"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Gestión de usuarios"
+    >
+      <div class="modal-content">
+        <button
+          type="button"
+          class="modal-close"
+          aria-label="Cerrar ventana"
+          onclick="cerrarModal('modal-usuarios')"
+        >
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/cyclepark-icons.svg#close"></use>
+          </svg>
+        </button>
+        <h3>Gestión de usuarios</h3>
         <div class="input-group">
-          <label>Nombre</label><input type="text" id="new-nombre" />
+          <label for="new-nombre">Nombre</label
+          ><input type="text" id="new-nombre" />
         </div>
         <div class="input-group">
-          <label>Usuario</label><input type="text" id="new-user" />
+          <label for="new-user">Usuario</label
+          ><input type="text" id="new-user" />
         </div>
         <div class="input-group">
-          <label>Contraseña</label><input type="password" id="new-pass" />
+          <label for="new-pass">Contraseña</label
+          ><input type="password" id="new-pass" />
         </div>
         <div class="input-group">
           <label>Rol</label
@@ -523,55 +583,47 @@
             <option value="Administrador">Administrador</option>
           </select>
         </div>
-        <button
-          onclick="crearUsuario()"
-          class="btn-primary"
-          style="margin-top: 15px"
-        >
+        <button onclick="crearUsuario()" class="btn-primary">
           Crear Usuario
         </button>
-        <hr style="margin: 20px 0; border: 0.5px solid #eee" />
-        <div style="max-height: 150px; overflow-y: auto">
-          <table style="width: 100%">
+        <hr />
+        <div>
+          <table>
             <tbody id="lista-usuarios-body"></tbody>
           </table>
         </div>
-        <button
-          onclick="cerrarModal('modal-usuarios')"
-          style="
-            background: grey;
-            color: white;
-            width: 100%;
-            margin-top: 15px;
-            border: none;
-            padding: 10px;
-            border-radius: 8px;
-          "
-        >
-          Cerrar
-        </button>
+        <button onclick="cerrarModal('modal-usuarios')">Cerrar</button>
       </div>
     </div>
 
-    <div id="modal-historial" class="modal">
-      <div class="modal-content" style="width: 950px">
-        <h3>📜 Historial del Turno</h3>
+    <div
+      id="modal-historial"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Historial del turno"
+    >
+      <div class="modal-content">
+        <button
+          type="button"
+          class="modal-close"
+          aria-label="Cerrar ventana"
+          onclick="cerrarModal('modal-historial')"
+        >
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/cyclepark-icons.svg#close"></use>
+          </svg>
+        </button>
+        <h3>Historial del turno</h3>
 
         <input
           type="text"
           id="filtro-historial"
-          placeholder="🔍 Buscar por nombre, código o vehículo..."
+          placeholder=" Buscar por nombre, código o vehículo..."
           oninput="filtrarHistorial()"
-          style="
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-          "
         />
 
-        <div style="max-height: 450px; overflow-y: auto">
+        <div>
           <table>
             <thead>
               <tr>
@@ -586,26 +638,66 @@
             <tbody id="historial-body"></tbody>
           </table>
         </div>
-        <button
-          onclick="cerrarModal('modal-historial')"
-          style="
-            background: grey;
-            color: white;
-            width: 100%;
-            margin-top: 15px;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-          "
-        >
-          Cerrar
-        </button>
+        <button onclick="cerrarModal('modal-historial')">Cerrar</button>
       </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-    <script src="../js/dashboard.js"></script>
+    <div
+      id="modal-corte"
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="report-title"
+    >
+      <div class="modal-content report-dialog">
+        <button
+          class="modal-close"
+          onclick="cerrarModal('modal-corte')"
+          aria-label="Cerrar ventana"
+        >
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/cyclepark-icons.svg#close"></use>
+          </svg>
+        </button>
+        <div class="dialog-emblem">
+          <svg class="icon" aria-hidden="true">
+            <use href="/assets/cyclepark-icons.svg#report"></use>
+          </svg>
+        </div>
+        <h2 id="report-title">Corte de turno</h2>
+        <p id="report-description"></p>
+        <div class="report-summary">
+          <div><span>Responsable</span><strong id="report-user"></strong></div>
+          <div>
+            <span>Vehículos en custodia</span
+            ><strong id="report-active"></strong>
+          </div>
+          <div><span>Documentos</span><strong>PDF y Excel</strong></div>
+        </div>
+        <p class="report-note">
+          Los vehículos en custodia mantienen su registro. Al finalizar, se
+          cerrará tu sesión.
+        </p>
+        <div class="dialog-actions">
+          <button class="btn-secondary" onclick="cerrarModal('modal-corte')">
+            Cancelar</button
+          ><button
+            class="btn-primary"
+            id="report-confirm"
+            onclick="ejecutarCorte(cortePendiente, true)"
+          >
+            <svg class="icon" aria-hidden="true">
+              <use href="/assets/cyclepark-icons.svg#download"></use></svg
+            >Generar y cerrar turno
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="toast-region" id="toast-region" aria-live="polite"></div>
+    <script src="/vendor/xlsx.bundle.js"></script>
+    <script src="/vendor/jspdf.umd.min.js"></script>
+    <script src="/vendor/jspdf.plugin.autotable.min.js"></script>
+    <script src="/js/dashboard.js"></script>
+    <script src="/js/ui.js"></script>
   </body>
 </html>

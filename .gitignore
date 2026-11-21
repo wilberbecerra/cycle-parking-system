@@ -16,3 +16,12 @@ build/
 .idea/
 *.suo
 *.user
+# Local documentation, skills, captures tooling and credentials
+.local/
+doc/
+docs/
+skills/
+*.md
+!/README.md
+.env.*
+!.env.example

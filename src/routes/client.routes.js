@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const https = require('https');
-const sql = require('mssql');
-const { getConnection } = require('../config/db');
-const TOKEN_API = "1c625f4160a670b2a295f7f52624cfc5";
+
+const { getConnection, sql } = require('../config/db');
+const TOKEN_API = process.env.IDENTITY_API_TOKEN || '';
 const URL_BASE = "https://api.peruapi.com/api";
-const agent = new https.Agent({ rejectUnauthorized: false });
+const agent = new https.Agent();
 
 
 router.get('/hoy', async (req, res) => {
@@ -33,6 +33,7 @@ router.get('/identidad/:tipo/:documento', async (req, res) => {
         const local = await pool.request().input('doc', documento).query('SELECT NOMBRE_COMPLETO FROM PRK_CLIENTES WHERE DNI = @doc');
         if (local.recordset.length > 0) return res.json({ nombre: local.recordset[0].NOMBRE_COMPLETO });
 
+        if (!TOKEN_API) return res.status(404).json({ mensaje: "Ingresa el nombre del cliente manualmente." });
         const response = await axios.get(`${URL_BASE}/${tipo.toLowerCase()}/${documento}?token=${TOKEN_API}`, { httpsAgent: agent });
         const data = response.data;
         const nombre = data.nombre_completo || (data.nombres ? `${data.nombres} ${data.apellido_paterno}` : null);
