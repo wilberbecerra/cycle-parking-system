@@ -1,3 +1,11 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/assets/cyclepark-white.svg">
+    <source media="(prefers-color-scheme: light)" srcset="public/assets/cyclepark.svg">
+    <img src="public/assets/cyclepark.svg" alt="CyclePark" width="300">
+  </picture>
+</p>
+
 # CyclePark — Sistema de Control de Acceso e Inventario de Tickets
 
 ![Estado](https://img.shields.io/badge/Estado-Completado-1f883d?style=flat-square)
